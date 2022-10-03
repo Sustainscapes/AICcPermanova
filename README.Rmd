@@ -1,0 +1,98 @@
+---
+date: "`r format(Sys.time(), '%d/%m, %Y')`"
+output:
+  bookdown::github_document2:
+    fig_caption: true
+    toc: true
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = F,
+  warning = F
+)
+```
+
+# AICcPermanova
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of AICcPermanova is to evaluate the best models for plant communities and bacterial communities in Denmark in order to do that we require the following packages
+
+```{r LoadPackages}
+library(vegan)
+library(dplyr)
+library(readxl)
+library(parallel)
+library(foreach)
+library(doParallel)
+```
+
+# Generation of all possible models
+
+After that we read in the datasets for environmental layers and generate all possible models to fit, in this case we will limit ourselves to only using at most one variable per ten observations, in this case that means up to 5 variables per model. The code for generating all possible models can be expanded bellow
+
+<details style=\"margin-bottom:10px;\">
+<summary>Model generator</summary>
+```{r ModelGenerator, cache = T}
+METADATAS <- list.files(pattern = "PERMANOVA_VEGETATION_", full.names = T)
+
+AllForms <- list()
+
+for(x in 1:length(METADATAS)){
+  meta.data = read_excel(METADATAS[x]) %>% 
+    janitor::clean_names()
+  vegetation_data = read_excel("Presence_absence_vegetation_AC_Danielsen.xlsx")%>% 
+    janitor::clean_names()
+  vegetation_data_no_ID = subset(vegetation_data, select = -plot)
+  env.data = subset(meta.data, select = -c(order))
+  env.data <- env.data %>% tidyr::drop_na()  
+  
+  Vars <- colnames(env.data)
+  Dataset <- "vegetation_data_no_ID"
+  Response = env.data
+  
+  Forms <- list()
+  
+  Models <- for(i in 1:floor(nrow(env.data)/10)){
+    Test <- combn(Vars, i, simplify = F)
+    cl <- makeCluster(21)
+    registerDoParallel(cl)
+    Formulas <- foreach(j = 1:length(Test), .combine = "rbind", .packages = c("dplyr")) %dopar% {
+      Dataset <- "vegetation_data_no_ID"
+      DF <- data.frame(Form = NA, AICc = NA)
+      Temp <- paste(Dataset,"~", paste(Test[[j]], collapse = " + ")) 
+      DF$Form <- Temp
+      DF <- DF %>% 
+        mutate(Dataset = METADATAS[x])
+      gc()
+      DF 
+    }
+    stopCluster(cl)
+    message(paste(i, "of", floor(nrow(env.data)/10), "ready", Sys.time()))
+    Forms[[i]] <- Formulas
+  }
+  
+  AllForms[[x]] <- Forms %>% 
+    purrr::reduce(bind_rows) 
+  print(paste(x, "of", length(METADATAS), "ready", Sys.time()))
+  
+  Dataset <- "vegetation_data_no_ID"
+}
+
+
+AllForms <- AllForms %>% 
+  purrr::reduce(bind_rows) %>% 
+  dplyr::distinct(Form, AICc, .keep_all = T)
+
+saveRDS(AllForms, "AllForms.rds")
+openxlsx::write.xlsx(AllForms, "AllForms.xlsx")
+```
+</details>
+
+This generate up to `r prettyNum(nrow(AllForms), big.mark = ",")` models to evaluate, wich can be downloaded in the following link
