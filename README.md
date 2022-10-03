@@ -100,5 +100,8 @@ openxlsx::write.xlsx(AllForms, "AllForms.xlsx")
 
 </details>
 
-This generate up to 3,503 models to evaluate, wich can be downloaded in
-the following link
+This generate up to 3,503 models to evaluate, which can be downloaded as
+an excel file
+[here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllForms.xlsx)
+an rds
+[here](https://github.com/Sustainscapes/AICcPermanova/blob/master/AllForms.rds)
