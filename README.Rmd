@@ -33,7 +33,9 @@ library(foreach)
 library(doParallel)
 ```
 
-# Generation of all possible models
+# Vegetation models
+
+## Generation of all possible models
 
 After that we read in the datasets for environmental layers and generate all possible models to fit, in this case we will limit ourselves to only using at most one variable per ten observations, in this case that means up to 5 variables per model. The code for generating all possible models can be expanded bellow
 
@@ -104,7 +106,7 @@ openxlsx::write.xlsx(AllForms, "AllForms.xlsx")
 
 This generate up to `r prettyNum(nrow(AllForms), big.mark = ",")` models to evaluate, which can be downloaded as an excel file [here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllForms.xlsx) an rds [here](https://github.com/Sustainscapes/AICcPermanova/blob/master/AllForms.rds).
 
-# Model fitting
+## Model fitting
 
 Then in the following code each model is fitted and AICc is calculated to order it
 

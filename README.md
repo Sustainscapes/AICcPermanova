@@ -1,10 +1,13 @@
 04/10, 2022
 
 - <a href="#1-aiccpermanova" id="toc-1-aiccpermanova">1 AICcPermanova</a>
-- <a href="#2-generation-of-all-possible-models"
-  id="toc-2-generation-of-all-possible-models">2 Generation of all
-  possible models</a>
-- <a href="#3-model-fitting" id="toc-3-model-fitting">3 Model fitting</a>
+- <a href="#2-vegetation-models" id="toc-2-vegetation-models">2 Vegetation
+  models</a>
+  - <a href="#21-generation-of-all-possible-models"
+    id="toc-21-generation-of-all-possible-models">2.1 Generation of all
+    possible models</a>
+  - <a href="#22-model-fitting" id="toc-22-model-fitting">2.2 Model
+    fitting</a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -26,7 +29,9 @@ library(foreach)
 library(doParallel)
 ```
 
-# 2 Generation of all possible models
+# 2 Vegetation models
+
+## 2.1 Generation of all possible models
 
 After that we read in the datasets for environmental layers and generate
 all possible models to fit, in this case we will limit ourselves to only
@@ -114,7 +119,7 @@ an excel file
 an rds
 [here](https://github.com/Sustainscapes/AICcPermanova/blob/master/AllForms.rds).
 
-# 3 Model fitting
+## 2.2 Model fitting
 
 Then in the following code each model is fitted and AICc is calculated
 to order it
@@ -232,7 +237,7 @@ openxlsx::write.xlsx(Fs, "FS.xlsx")
 </details>
 
 Now we can see the top models that have a delta AICc within 2 of the
-best model in table <a href="#tab:BestPLantModels">3.1</a> if expanded
+best model in table <a href="#tab:BestPLantModels">2.1</a> if expanded
 
 | Form                                                                        |    AICc | DeltaAICc | habitat_type |  area | water_content | oc_beregnet | fine_silt | coarse_silt_sand |
 |:----------------------------------------------------------------------------|--------:|----------:|-------------:|------:|--------------:|------------:|----------:|-----------------:|
@@ -243,4 +248,4 @@ best model in table <a href="#tab:BestPLantModels">3.1</a> if expanded
 | vegetation_data_no_ID \~ habitat_type + area                                | -88.676 |     1.319 |         0.53 | 0.285 |            NA |          NA |        NA |               NA |
 | vegetation_data_no_ID \~ habitat_type + area + oc_beregnet + fine_silt      | -88.418 |     1.577 |         0.53 | 0.285 |            NA |       0.018 |     0.015 |               NA |
 
-Table 3.1: Best models
+Table 2.1: Best models
