@@ -12,52 +12,69 @@ library(parallel)
 library(foreach)
 library(doParallel)
 
-meta.data = read_excel("PERMANOVA_VEGETATION_ clay_silt_sand_OC_and_others_AC_Danielsen.xlsx") %>% 
-  janitor::clean_names()
+METADATAS <- list.files(pattern = "PERMANOVA_VEGETATION_", full.names = T)
 
-vegetation_data = read_excel("Presence_absence_vegetation_AC_Danielsen.xlsx")%>% 
-  janitor::clean_names()
-# Remocing the first column (ID) in vegetation-dataset and cheking there are no NAs
+AllForms <- list()
 
-vegetation_data_no_ID = subset(vegetation_data, select = -plot)
+for(x in 1:length(METADATAS)){
+  meta.data = read_excel(METADATAS[x]) %>% 
+    janitor::clean_names()
+  vegetation_data = read_excel("Presence_absence_vegetation_AC_Danielsen.xlsx")%>% 
+    janitor::clean_names()
+  vegetation_data_no_ID = subset(vegetation_data, select = -plot)
+  env.data = subset(meta.data, select = -c(order))
+  env.data <- env.data %>% tidyr::drop_na()  
+  
+  Vars <- colnames(env.data)
+  Dataset <- "vegetation_data_no_ID"
+  Response = env.data
+  
+  Forms <- list()
+  
+  Models <- for(i in 1:floor(nrow(env.data)/10)){
+    Test <- combn(Vars, i, simplify = F)
+    cl <- makeCluster(21)
+    registerDoParallel(cl)
+    Formulas <- foreach(j = 1:length(Test), .combine = "rbind", .packages = c("dplyr")) %dopar% {
+      Dataset <- "vegetation_data_no_ID"
+      DF <- data.frame(Form = NA, AICc = NA)
+      Temp <- paste(Dataset,"~", paste(Test[[j]], collapse = " + ")) 
+      DF$Form <- Temp
+      DF <- DF %>% 
+        mutate(Dataset = METADATAS[x])
+      gc()
+      DF 
+    }
+    stopCluster(cl)
+    message(paste(i, "of", floor(nrow(env.data)/10), "ready", Sys.time()))
+    Forms[[i]] <- Formulas
+  }
+  
+  AllForms[[x]] <- Forms %>% 
+    purrr::reduce(bind_rows) 
+  print(paste(x, "of", length(METADATAS), "ready", Sys.time()))
+  
+  Dataset <- "vegetation_data_no_ID"
+}
+
+
+AllForms <- AllForms %>% 
+  urrr::reduce(bind_rows) %>% 
+  dplyr::distinct(Form, AICc, .keep_all = T)
+
+
 
 
 # Removing columns from env.data that is not used in the analysis 
 
-env.data = subset(meta.data, select = -c(order))
 
 
 
-env.data <- env.data %>% tidyr::drop_na()  
 
-Vars <- colnames(env.data)
-Dataset <- "vegetation_data_no_ID"
 
-Response = env.data
 
-Forms <- list()
 
-Models <- for(i in 1:floor(nrow(env.data)/10)){
-  Test <- combn(Vars, i, simplify = F)
-  cl <- makeCluster(21)
-  registerDoParallel(cl)
-  Formulas <- foreach(j = 1:length(Test), .combine = "rbind")%dopar%{
-    Dataset <- "vegetation_data_no_ID"
-    DF <- data.frame(Form = NA, AICc = NA)
-    Temp <- paste(Dataset,"~", paste(Test[[j]], collapse = " + ")) 
-    DF$Form <- Temp
-    gc()
-    DF
-  }
-  stopCluster(cl)
-  message(paste(i, "of", floor(nrow(env.data)/10), "ready", Sys.time()))
-  Forms[[i]] <- Formulas
-}
 
-Forms <- Forms %>% 
-  purrr::reduce(bind_rows) 
-
-Dataset <- "vegetation_data_no_ID"
 
 NullMod <- data.frame(Form = paste(Dataset, "~ 1", collapse = ""), AICc = NA)
 

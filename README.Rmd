@@ -35,7 +35,9 @@ library(doParallel)
 
 # Vegetation models
 
-## Generation of all possible models
+## Presence-absence data
+
+### Generation of all possible models
 
 After that we read in the datasets for environmental layers and generate all possible models to fit, in this case we will limit ourselves to only using at most one variable per ten observations, in this case that means up to 5 variables per model. The code for generating all possible models can be expanded bellow
 
@@ -56,7 +58,7 @@ for(x in 1:length(METADATAS)){
   env.data <- env.data %>% tidyr::drop_na()  
   
   Vars <- colnames(env.data)
-  Dataset <- "vegetation_data_no_ID"
+  Dataset <- "JaccardDistance"
   Response = env.data
   
   Forms <- list()
@@ -66,7 +68,7 @@ for(x in 1:length(METADATAS)){
     cl <- makeCluster(21)
     registerDoParallel(cl)
     Formulas <- foreach(j = 1:length(Test), .combine = "rbind", .packages = c("dplyr")) %dopar% {
-      Dataset <- "vegetation_data_no_ID"
+      Dataset <- "JaccardDistance"
       DF <- data.frame(Form = NA, AICc = NA)
       Temp <- paste(Dataset,"~", paste(Test[[j]], collapse = " + ")) 
       DF$Form <- Temp
@@ -84,7 +86,7 @@ for(x in 1:length(METADATAS)){
     purrr::reduce(bind_rows) 
   print(paste(x, "of", length(METADATAS), "ready", Sys.time()))
   
-  Dataset <- "vegetation_data_no_ID"
+  Dataset <- "JaccardDistance"
 }
 
 
@@ -106,7 +108,7 @@ openxlsx::write.xlsx(AllForms, "AllForms.xlsx")
 
 This generate up to `r prettyNum(nrow(AllForms), big.mark = ",")` models to evaluate, which can be downloaded as an excel file [here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllForms.xlsx) an rds [here](https://github.com/Sustainscapes/AICcPermanova/blob/master/AllForms.rds).
 
-## Model fitting
+### Model fitting
 
 Then in the following code each model is fitted and AICc is calculated to order it
 
@@ -130,6 +132,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   vegetation_data_no_ID = subset(vegetation_data, select = -plot)
   
+  JaccardDistance <- vegan::vegdist(vegetation_data_no_ID, method = "jaccard")
+  
   
   # Removing columns from env.data that is not used in the analysis 
   
@@ -140,7 +144,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   env.data <- env.data %>% tidyr::drop_na()  
   
   Vars <- colnames(env.data)
-  Dataset <- "vegetation_data_no_ID"
+  Dataset <- "JaccardDistance"
   
   Response = env.data
   
