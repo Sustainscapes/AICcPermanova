@@ -429,7 +429,34 @@ openxlsx::write.xlsx(Fs, "FSBacterialAbund.xlsx")
 </details>
 
 
-Now we can see the top models that have a delta AICc within 2 of the best model in table  \@ref(tab:BestBacterialAbundModels) if expanded
+As seen in table  \@ref(tab:SummaryBacterialAbund) there are `r readRDS("FSBacterialAbund.rds") %>% 
+    dplyr::filter(AICc > -Inf) %>% 
+    mutate(DeltaAICc = AICc - min(AICc)) %>% 
+    relocate(DeltaAICc, .after = AICc) %>% 
+    dplyr::filter(DeltaAICc <= 2) %>% 
+    nrow()` models within 2 AICc of each other, you can see there how many times a variable has been selected
+
+```{r SummaryBacterialAbund, echo = F}
+readRDS("FSBacterialAbund.rds") %>% 
+    dplyr::filter(AICc > -Inf) %>% 
+    mutate(DeltaAICc = AICc - min(AICc)) %>% 
+    relocate(DeltaAICc, .after = AICc) %>% 
+    dplyr::filter(DeltaAICc <= 2) %>% 
+    select_if(~sum(!is.na(.)) > 0) %>% 
+    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc) %>% 
+  ungroup() %>% 
+  mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
+  summarise_if(is.numeric, sum) %>% 
+  tidyr::pivot_longer(everything(), names_to = "Variable", values_to = "Number_of_models") %>% 
+  arrange(desc(Number_of_models))  %>% 
+  knitr::kable(digits = 3, caption = "Number of selected models were variables are present", format.args	= list(big.mark = ','))
+```
+
+
+Now we can see the top models that have a delta AICc within 2 of the best model in table  \@ref(tab:BestBacterialPAModels) if expanded
+
+<details style=\"margin-bottom:10px;\">
+<summary>Show table of selected models for bacterial abundance</summary>
 ```{r BestBacterialAbundModels, echo=FALSE}
 Fs <- readRDS("FSBacterialAbund.rds")
 Fs %>% 
@@ -441,6 +468,7 @@ Fs %>%
   dplyr::select(-Dataset) %>% 
   knitr::kable(digits = 3, caption = "Best models ", format.args	= list(big.mark = ','))
 ```
+</details>
 
 ## Presence absence data
 

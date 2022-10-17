@@ -600,9 +600,38 @@ openxlsx::write.xlsx(Fs, "FSBacterialAbund.xlsx")
 
 </details>
 
+As seen in table <a href="#tab:SummaryBacterialAbund">3.1</a> there are
+69 models within 2 AICc of each other, you can see there how many times
+a variable has been selected
+
+| Variable          | Number_of_models |
+|:------------------|-----------------:|
+| habitat_type      |               69 |
+| oc_beregnet       |               29 |
+| water_content     |               26 |
+| shannon_veg       |               20 |
+| p_h\_water        |               19 |
+| coarse_silt_sand  |               14 |
+| wr                |               12 |
+| finesilt_and_clay |                8 |
+| fine_silt         |                7 |
+| ec                |                6 |
+| ammonium          |                6 |
+| clay              |                2 |
+| dexter_n          |                2 |
+
+Table 3.1: Number of selected models were variables are present
+
 Now we can see the top models that have a delta AICc within 2 of the
-best model in table <a href="#tab:BestBacterialAbundModels">3.1</a> if
+best model in table <a href="#tab:BestBacterialPAModels">3.4</a> if
 expanded
+
+<details style="\&quot;margin-bottom:10px;\&quot;">
+<summary>
+
+Show table of selected models for bacterial abundance
+
+</summary>
 
 | Form                                                                                              |    AICc | DeltaAICc | habitat_type | p_h\_water |    ec | water_content |    wr | ammonium | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_veg | finesilt_and_clay | dexter_n |
 |:--------------------------------------------------------------------------------------------------|--------:|----------:|-------------:|-----------:|------:|--------------:|------:|---------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
@@ -676,7 +705,9 @@ expanded
 | BrayDistance \~ habitat_type + ammonium + oc_beregnet                                             | -84.102 |     1.983 |        0.529 |         NA |    NA |            NA |    NA |    0.016 |       0.020 |    NA |        NA |               NA |          NA |                NA |       NA |
 | BrayDistance \~ habitat_type + p_h\_water + wr + shannon_veg                                      | -84.086 |     2.000 |        0.529 |      0.024 |    NA |            NA | 0.016 |       NA |          NA |    NA |        NA |               NA |       0.020 |                NA |       NA |
 
-Table 3.1: Best models
+Table 3.2: Best models
+
+</details>
 
 ## 3.2 Presence absence data
 
@@ -896,7 +927,7 @@ openxlsx::write.xlsx(Fs, "FSBacterialPA.xlsx")
 
 </details>
 
-As seen in table <a href="#tab:SummaryBacterialPA">3.2</a> there are 43
+As seen in table <a href="#tab:SummaryBacterialPA">3.3</a> there are 43
 models within 2 AICc of each other, you can see there how many times a
 variable has been selected
 
@@ -917,10 +948,10 @@ variable has been selected
 | ammonium          |                2 |
 | dexter_n          |                2 |
 
-Table 3.2: Number of selected models were variables are present
+Table 3.3: Number of selected models were variables are present
 
 Now we can see the top models that have a delta AICc within 2 of the
-best model in table <a href="#tab:BestBacterialPAModels">3.3</a> if
+best model in table <a href="#tab:BestBacterialPAModels">3.4</a> if
 expanded
 
 <details style="\&quot;margin-bottom:10px;\&quot;">
@@ -976,6 +1007,6 @@ Show table of selected models for bacterial presence
 | JaccardDistance \~ habitat_type + p_h\_water + coarse_silt_sand                      | -97.640 |     1.947 |        0.577 |      0.016 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.014 |          NA |                NA |       NA |
 | JaccardDistance \~ habitat_type + water_content + oc_beregnet + shannon_veg          | -97.633 |     1.953 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |       0.016 |    NA |        NA |               NA |       0.014 |                NA |       NA |
 
-Table 3.3: Best models for bacterial presence absence datasets
+Table 3.4: Best models for bacterial presence absence datasets
 
 </details>
