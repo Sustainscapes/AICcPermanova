@@ -19,6 +19,13 @@
       possible models</a>
     - <a href="#312-model-fitting" id="toc-312-model-fitting">3.1.2 Model
       fitting</a>
+  - <a href="#32-presence-absence-data"
+    id="toc-32-presence-absence-data">3.2 Presence absence data</a>
+    - <a href="#321-generation-of-all-possible-models"
+      id="toc-321-generation-of-all-possible-models">3.2.1 Generation of all
+      possible models</a>
+    - <a href="#322-model-fitting" id="toc-322-model-fitting">3.2.2 Model
+      fitting</a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -670,3 +677,273 @@ expanded
 | BrayDistance \~ habitat_type + p_h\_water + wr + shannon_veg                                      | -84.086 |     2.000 |        0.529 |      0.024 |    NA |            NA | 0.016 |       NA |          NA |    NA |        NA |               NA |       0.020 |                NA |       NA |
 
 Table 3.1: Best models
+
+## 3.2 Presence absence data
+
+### 3.2.1 Generation of all possible models
+
+We read in the datasets for environmental layers and generate all
+possible models to fit, in this case we will limit ourselves to only
+using at most one variable per ten observations, in this case that means
+up to 5 variables per model. The code for generating all possible models
+can be expanded bellow
+
+<details style="\&quot;margin-bottom:10px;\&quot;">
+<summary>
+
+Model generator bacterial abundance
+
+</summary>
+
+``` r
+METADATAS <- list.files(pattern = "PERMANOVA_BACTERIA_", full.names = T)
+
+AllForms <- list()
+
+for(x in 1:length(METADATAS)){
+  meta.data = read_excel(METADATAS[x]) %>% 
+    janitor::clean_names()
+  d <- amp_load(
+  otutable = "AC_otutale_new.txt",
+  metadata = "Metadata_mix-samples_AC_Danielsen_final.xlsx")
+  bac.data.subset = amp_subset_taxa(d, "d__Bacteria")
+  bacterial_data = amp_subset_samples(d, Investigator == "AC")
+  bacterial_data = as.data.frame(t(bacterial_data$abund)) %>% 
+    janitor::clean_names()
+
+  env.data = subset(meta.data, select = -c(order))
+  env.data <- env.data %>% tidyr::drop_na()  
+  
+  Vars <- colnames(env.data)
+  Dataset <- "JaccardDistance"
+  Response = env.data
+  
+  Forms <- list()
+  
+  Models <- for(i in 1:floor(nrow(env.data)/10)){
+    Test <- combn(Vars, i, simplify = F)
+    cl <- makeCluster(21)
+    registerDoParallel(cl)
+    Formulas <- foreach(j = 1:length(Test), .combine = "rbind", .packages = c("dplyr")) %dopar% {
+      Dataset <- "JaccardDistance"
+      DF <- data.frame(Form = NA, AICc = NA)
+      Temp <- paste(Dataset,"~", paste(Test[[j]], collapse = " + ")) 
+      DF$Form <- Temp
+      DF <- DF %>% 
+        mutate(Dataset = METADATAS[x])
+      gc()
+      DF 
+    }
+    stopCluster(cl)
+    message(paste(i, "of", floor(nrow(env.data)/10), "ready", Sys.time()))
+    Forms[[i]] <- Formulas
+  }
+  
+  AllForms[[x]] <- Forms %>% 
+    purrr::reduce(bind_rows) 
+  print(paste(x, "of", length(METADATAS), "ready", Sys.time()))
+  
+  Dataset <- "JaccardDistance"
+}
+#> [1] "1 of 3 ready 2022-10-17 05:03:21"
+#> [1] "2 of 3 ready 2022-10-17 05:04:43"
+#> [1] "3 of 3 ready 2022-10-17 05:06:05"
+
+
+AllForms <- AllForms %>% 
+  purrr::reduce(bind_rows) %>% 
+  dplyr::distinct(Form, AICc, .keep_all = T)
+
+NullMod <- data.frame(Form = paste(Dataset, "~ 1", collapse = ""), AICc = NA) %>% 
+  mutate(Dataset = METADATAS[1])
+
+AllForms <- AllForms %>% 
+  bind_rows(NullMod)
+  
+
+saveRDS(AllForms, "AllFormsBacterialPA.rds")
+openxlsx::write.xlsx(AllForms, "AllFormsBacterialPA.xlsx")
+```
+
+</details>
+
+This generate up to 5,061 models to evaluate, which can be downloaded as
+an excel file
+[here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllFormsBacterialPA.xlsx)
+an rds
+[here](https://github.com/Sustainscapes/AICcPermanova/blob/master/AllFormsBacterialPA.rds).
+
+### 3.2.2 Model fitting
+
+Then in the following code each model is fitted and AICc is calculated
+to order it
+
+<details style="\&quot;margin-bottom:10px;\&quot;">
+<summary>
+
+Model fitting code bacterial presence absence
+
+</summary>
+
+``` r
+if(file.exists("logBacterialPA.txt")){
+  file.remove("logBacterialPA.txt")
+}
+
+cl <- makeCluster(21)
+registerDoParallel(cl)
+
+Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "readxl", "ampvis2"), .combine = bind_rows) %dopar% {
+  AllForms <- readRDS("AllFormsBacterialPA.rds")
+  meta.data = read_excel(AllForms$Dataset[x]) %>% 
+    janitor::clean_names()
+  
+  d <- amp_load(
+  otutable = "AC_otutale_new.txt",
+  metadata = "Metadata_mix-samples_AC_Danielsen_final.xlsx")
+  bac.data.subset = amp_subset_taxa(d, "d__Bacteria")
+  bacterial_data = amp_subset_samples(d, Investigator == "AC")
+  bacterial_data = as.data.frame(t(bacterial_data$abund)) %>% 
+    janitor::clean_names() %>% 
+    mutate_if(is.numeric, ~ifelse(.x > 0, 1, 0))
+  # Remocing the first column (ID) in vegetation-dataset and cheking there are no NAs
+  meta.data <- meta.data[match(rownames(bacterial_data), meta.data$seq_id),]
+  JaccardDistance <- vegan::vegdist(bacterial_data, method = "jaccard")
+  
+  
+  # Removing columns from env.data that is not used in the analysis 
+  
+  env.data = subset(meta.data, select = -c(order))
+  
+  
+  
+  env.data <- env.data %>% tidyr::drop_na()  
+  
+  Vars <- colnames(env.data)
+  Dataset <- "JaccardDistance"
+  
+  Response = env.data
+  
+
+  gc()
+  AICc.PERMANOVA2 <- function(adonis2.model) {
+    
+    # check to see if object is an adonis2 model...
+    
+    if (is.na(adonis2.model$SumOfSqs[1]))
+      stop("object not output of adonis2 {vegan} ")
+    
+    # Ok, now extract appropriate terms from the adonis model Calculating AICc
+    # using residual sum of squares (RSS or SSE) since I don't think that adonis
+    # returns something I can use as a likelihood function... maximum likelihood
+    # and MSE estimates are the same when distribution is gaussian See e.g.
+    # https://www.jessicayung.com/mse-as-maximum-likelihood/;
+    # https://towardsdatascience.com/probability-concepts-explained-maximum-likelihood-estimation-c7b4342fdbb1
+    # So using RSS or MSE estimates is fine as long as the residuals are
+    # Gaussian https://robjhyndman.com/hyndsight/aic/ If models have different
+    # conditional likelihoods then AIC is not valid. However, comparing models
+    # with different error distributions is ok (above link).
+    
+    
+    RSS <- adonis2.model$SumOfSqs[ length(adonis2.model$SumOfSqs) - 1 ]
+    MSE <- RSS / adonis2.model$Df[ length(adonis2.model$Df) - 1 ]
+    
+    nn <- adonis2.model$Df[ length(adonis2.model$Df) ] + 1
+    
+    k <- nn - adonis2.model$Df[ length(adonis2.model$Df) - 1 ]
+    
+    
+    # AIC : 2*k + n*ln(RSS/n)
+    # AICc: AIC + [2k(k+1)]/(n-k-1)
+    
+    # based on https://en.wikipedia.org/wiki/Akaike_information_criterion;
+    # https://www.statisticshowto.datasciencecentral.com/akaikes-information-criterion/ ;
+    # https://www.researchgate.net/post/What_is_the_AIC_formula;
+    # http://avesbiodiv.mncn.csic.es/estadistica/ejemploaic.pdf;
+    # https://medium.com/better-programming/data-science-modeling-how-to-use-linear-regression-with-python-fdf6ca5481be 
+    
+    
+    AIC <- 2*k + nn*log(RSS/nn)
+    AICc <- AIC + (2*k*(k + 1))/(nn - k - 1)
+    
+    output <- data.frame(AICc = AICc, k = k, N = nn)
+    
+    return(output)   
+    
+  }
+  Temp <- AllForms[x,]
+  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms"))$AICc, silent = T)
+  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  if((x %% 100) == 0){
+    sink("logBacterialPA.txt", append = T)
+    cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
+    cat("\n")
+    sink()
+  }
+  
+  bind_cols(Temp, Rs)
+}
+
+stopCluster(cl)
+
+saveRDS(Fs, "FSBacterialPA.rds")
+
+Fs <- Fs %>% arrange(AICc)
+
+saveRDS(Fs, "FSBacterialPA.rds")
+openxlsx::write.xlsx(Fs, "FSBacterialPA.xlsx")
+```
+
+</details>
+
+Now we can see the top models that have a delta AICc within 2 of the
+best model in table <a href="#tab:BestBacterialPAModels">3.2</a> if
+expanded
+
+| Form                                                                                 |    AICc | DeltaAICc | habitat_type | p_h\_water |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_veg | finesilt_and_clay | dexter_n |
+|:-------------------------------------------------------------------------------------|--------:|----------:|-------------:|-----------:|------:|--------------:|------:|---------:|--------------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
+| JaccardDistance \~ habitat_type + water_content                                      | -99.586 |     0.000 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type                                                      | -99.502 |     0.084 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet                                        | -99.386 |     0.200 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |       0.021 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + p_h\_water + water_content                         | -98.820 |     0.766 |        0.577 |      0.016 |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + oc_beregnet                        | -98.786 |     0.800 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |       0.016 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + wr                                                 | -98.751 |     0.835 |        0.577 |         NA |    NA |            NA | 0.016 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + wr                                 | -98.719 |     0.867 |        0.577 |         NA |    NA |         0.023 | 0.016 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + p_h\_water                                         | -98.718 |     0.868 |        0.577 |      0.016 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + coarse_silt_sand                                   | -98.586 |     1.000 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.015 |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + shannon_veg                                        | -98.582 |     1.004 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.015 |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + shannon_veg                          | -98.532 |     1.054 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |       0.021 |    NA |        NA |               NA |       0.016 |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + shannon_veg                        | -98.445 |     1.141 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.014 |                NA |       NA |
+| JaccardDistance \~ habitat_type + p_h\_water + oc_beregnet                           | -98.393 |     1.193 |        0.577 |      0.016 |    NA |            NA |    NA |       NA |            NA |       0.020 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + fine_silt                          | -98.365 |     1.221 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |     0.013 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + fine_silt                                          | -98.333 |     1.253 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.013 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ammonium                                           | -98.313 |     1.274 |        0.577 |         NA |    NA |            NA |    NA |    0.013 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + coarse_silt_sand                   | -98.261 |     1.325 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |        NA |            0.012 |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + water_content                                 | -98.242 |     1.344 |        0.577 |         NA | 0.011 |         0.024 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + nitrat_nitrit                                      | -98.166 |     1.420 |        0.577 |         NA |    NA |            NA |    NA |       NA |         0.012 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + ammonium                           | -98.162 |     1.424 |        0.577 |         NA |    NA |         0.023 |    NA |    0.011 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + finesilt_and_clay                                  | -98.153 |     1.433 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.012 |       NA |
+| JaccardDistance \~ habitat_type + wr + oc_beregnet                                   | -98.112 |     1.474 |        0.577 |         NA |    NA |            NA | 0.016 |       NA |            NA |       0.018 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + nitrat_nitrit                      | -98.085 |     1.501 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |         0.011 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + finesilt_and_clay                  | -98.080 |     1.506 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.011 |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + fine_silt                            | -98.078 |     1.508 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |       0.021 |    NA |     0.012 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec                                                 | -98.071 |     1.515 |        0.577 |         NA | 0.011 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + clay                                               | -98.016 |     1.570 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA | 0.011 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + nitrat_nitrit + oc_beregnet                        | -97.967 |     1.619 |        0.577 |         NA |    NA |            NA |    NA |       NA |         0.012 |       0.021 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + clay                               | -97.939 |     1.647 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |          NA | 0.010 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + wr + shannon_veg                                   | -97.938 |     1.648 |        0.577 |         NA |    NA |            NA | 0.016 |       NA |            NA |          NA |    NA |        NA |               NA |       0.016 |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + oc_beregnet                                   | -97.849 |     1.737 |        0.577 |         NA | 0.011 |            NA |    NA |       NA |            NA |       0.021 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + coarse_silt_sand                     | -97.823 |     1.764 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |       0.021 |    NA |        NA |            0.010 |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + finesilt_and_clay                    | -97.823 |     1.764 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |       0.021 |    NA |        NA |               NA |          NA |             0.010 |       NA |
+| JaccardDistance \~ habitat_type + coarse_silt_sand + finesilt_and_clay               | -97.823 |     1.764 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.015 |          NA |             0.017 |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + coarse_silt_sand + finesilt_and_clay | -97.823 |     1.764 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |       0.021 |    NA |        NA |            0.010 |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + fine_silt + coarse_silt_sand                       | -97.817 |     1.769 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.013 |            0.019 |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + p_h\_water + shannon_veg                           | -97.734 |     1.852 |        0.577 |      0.016 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.015 |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + dexter_n                           | -97.662 |     1.924 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.008 |
+| JaccardDistance \~ habitat_type + dexter_n                                           | -97.658 |     1.928 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.008 |
+| JaccardDistance \~ habitat_type + coarse_silt_sand + shannon_veg                     | -97.651 |     1.935 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.015 |       0.015 |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + clay                                 | -97.643 |     1.943 |        0.577 |         NA |    NA |            NA |    NA |       NA |            NA |       0.021 | 0.009 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + p_h\_water + coarse_silt_sand                      | -97.640 |     1.947 |        0.577 |      0.016 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.014 |          NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + oc_beregnet + shannon_veg          | -97.633 |     1.953 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |       0.016 |    NA |        NA |               NA |       0.014 |                NA |       NA |
+
+Table 3.2: Best models for bacterial presence absence datasets

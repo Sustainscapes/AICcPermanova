@@ -545,7 +545,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   bac.data.subset = amp_subset_taxa(d, "d__Bacteria")
   bacterial_data = amp_subset_samples(d, Investigator == "AC")
   bacterial_data = as.data.frame(t(bacterial_data$abund)) %>% 
-    janitor::clean_names()
+    janitor::clean_names() %>% 
+    mutate_if(is.numeric, ~ifelse(.x > 0, 1, 0))
   # Remocing the first column (ID) in vegetation-dataset and cheking there are no NAs
   meta.data <- meta.data[match(rownames(bacterial_data), meta.data$seq_id),]
   JaccardDistance <- vegan::vegdist(bacterial_data, method = "jaccard")
@@ -560,7 +561,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   env.data <- env.data %>% tidyr::drop_na()  
   
   Vars <- colnames(env.data)
-  Dataset <- "JAccardDistance"
+  Dataset <- "JaccardDistance"
   
   Response = env.data
   
@@ -636,9 +637,9 @@ openxlsx::write.xlsx(Fs, "FSBacterialPA.xlsx")
 </details>
 
 
-Now we can see the top models that have a delta AICc within 2 of the best model in table  \@ref(tab:BestBacterialAbundModels) if expanded
+Now we can see the top models that have a delta AICc within 2 of the best model in table  \@ref(tab:BestBacterialPAModels) if expanded
 ```{r BestBacterialPAModels, echo=FALSE}
-Fs <- readRDS("FSBacterialAbund.rds")
+Fs <- readRDS("FSBacterialPA.rds")
 Fs %>% 
   dplyr::filter(AICc > -Inf) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
@@ -646,6 +647,6 @@ Fs %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   select_if(~sum(!is.na(.)) > 0) %>% 
   dplyr::select(-Dataset) %>% 
-  knitr::kable(digits = 3, caption = "Best models ", format.args	= list(big.mark = ','))
+  knitr::kable(digits = 3, caption = "Best models for bacterial presence absence datasets", format.args	= list(big.mark = ','))
 ```
 
