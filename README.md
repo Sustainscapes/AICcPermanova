@@ -259,8 +259,39 @@ openxlsx::write.xlsx(Fs, "FS.xlsx")
 
 </details>
 
+As seen in table <a href="#tab:SummaryPlantPA">2.1</a> there are 113
+models within 2 AICc of each other, you can see there how many times a
+variable has been selected
+
+| Variable          | Number_of_models |
+|:------------------|-----------------:|
+| habitat_type      |              113 |
+| oc_beregnet       |               49 |
+| ec                |               42 |
+| fine_silt         |               36 |
+| coarse_silt_sand  |               30 |
+| p_h\_water        |               26 |
+| water_content     |               22 |
+| wr                |               20 |
+| finesilt_and_clay |               19 |
+| clay              |               18 |
+| nitrat_nitrit     |                7 |
+| dexter_n          |                7 |
+| area              |                2 |
+| shannon_bak       |                2 |
+| ammonium          |                1 |
+
+Table 2.1: Number of selected models were variables are present
+
 Now we can see the top models that have a delta AICc within 2 of the
-best model in table <a href="#tab:BestPLantModels">2.1</a> if expanded
+best model in table <a href="#tab:BestPLantModels">2.2</a> if expanded
+
+<details style="\&quot;margin-bottom:10px;\&quot;">
+<summary>
+
+Show table of selected models for vegetation presence absence
+
+</summary>
 
 | Form                                                                                                 |    AICc | DeltaAICc | habitat_type |  area | p_h\_water |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_bak | finesilt_and_clay | dexter_n |
 |:-----------------------------------------------------------------------------------------------------|--------:|----------:|-------------:|------:|-----------:|------:|--------------:|------:|---------:|--------------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
@@ -378,7 +409,9 @@ best model in table <a href="#tab:BestPLantModels">2.1</a> if expanded
 | JaccardDistance \~ habitat_type + wr + dexter_n                                                      | -58.602 |     1.989 |        0.411 |    NA |         NA |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.018 |
 | JaccardDistance \~ habitat_type + ammonium                                                           | -58.594 |     1.997 |        0.411 |    NA |         NA |    NA |            NA |    NA |    0.009 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
 
-Table 2.1: Best models
+Table 2.2: Best models
+
+</details>
 
 # 3 Baterial models
 
