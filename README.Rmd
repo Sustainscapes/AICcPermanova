@@ -260,6 +260,230 @@ Fs %>%
 ```
 </details>
 
+## Abundance data
+
+### Generation of all possible models
+
+After that we read in the datasets for environmental layers and generate all possible models to fit, in this case we will limit ourselves to only using at most one variable per ten observations, in this case that means up to 5 variables per model. The code for generating all possible models can be expanded bellow
+
+<details style=\"margin-bottom:10px;\">
+<summary>Model generator</summary>
+```{r ModelGeneratoVegAbundance, cache = T}
+METADATAS <- list.files(pattern = "PERMANOVA_VEGETATION_", full.names = T)
+
+AllForms <- list()
+
+for(x in 1:length(METADATAS)){
+  meta.data = read_excel(METADATAS[x]) %>% 
+    janitor::clean_names()
+  vegetation_data = read_excel("Pinpoint-data til ordination_minus_Lønstrup.xlsx")%>% 
+    janitor::clean_names()
+  vegetation_data_no_ID = vegetation_data
+  env.data = subset(meta.data, select = -c(order))
+  env.data <- env.data %>% tidyr::drop_na()  
+  
+  Vars <- colnames(env.data)
+  Dataset <- "BrayDistance"
+  Response = env.data
+  
+  Forms <- list()
+  
+  Models <- for(i in 1:floor(nrow(env.data)/10)){
+    Test <- combn(Vars, i, simplify = F)
+    cl <- makeCluster(21)
+    registerDoParallel(cl)
+    Formulas <- foreach(j = 1:length(Test), .combine = "rbind", .packages = c("dplyr")) %dopar% {
+      Dataset <- "BrayDistance"
+      DF <- data.frame(Form = NA, AICc = NA)
+      Temp <- paste(Dataset,"~", paste(Test[[j]], collapse = " + ")) 
+      DF$Form <- Temp
+      DF <- DF %>% 
+        mutate(Dataset = METADATAS[x])
+      gc()
+      DF 
+    }
+    stopCluster(cl)
+    message(paste(i, "of", floor(nrow(env.data)/10), "ready", Sys.time()))
+    Forms[[i]] <- Formulas
+  }
+  
+  AllForms[[x]] <- Forms %>% 
+    purrr::reduce(bind_rows) 
+  print(paste(x, "of", length(METADATAS), "ready", Sys.time()))
+  
+  Dataset <- "BrayDistance"
+}
+
+
+AllForms <- AllForms %>% 
+  purrr::reduce(bind_rows) %>% 
+  dplyr::distinct(Form, AICc, .keep_all = T)
+
+NullMod <- data.frame(Form = paste(Dataset, "~ 1", collapse = ""), AICc = NA) %>% 
+  mutate(Dataset = METADATAS[1])
+
+AllFormsVegAbund <- AllForms %>% 
+  bind_rows(NullMod)
+  
+
+saveRDS(AllFormsVegAbund, "AllFormsVegAbund.rds")
+openxlsx::write.xlsx(AllFormsVegAbund, "AllFormsVegAbund.xlsx")
+```
+</details>
+
+This generate up to `r prettyNum(nrow(AllFormsVegAbund), big.mark = ",")` models to evaluate, which can be downloaded as an excel file [here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllFormsVegAbund.xlsx) an rds [here](https://github.com/Sustainscapes/AICcPermanova/blob/master/AllFormsVegAbund.rds).
+
+### Model fitting
+
+Then in the following code each model is fitted and AICc is calculated to order it
+
+<details style=\"margin-bottom:10px;\">
+<summary>Model fitting code for vegetation abundance</summary>
+```{r ModelFittingVegAbund, cache = T}
+if(file.exists("logVegAbund.txt")){
+  file.remove("logVegAbund.txt")
+}
+
+cl <- makeCluster(21)
+registerDoParallel(cl)
+
+Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tidyr", "readxl"), .combine = bind_rows) %dopar% {
+  meta.data = read_excel(AllFormsVegAbund$Dataset[x]) %>% 
+    janitor::clean_names()
+  
+  vegetation_data = read_excel("Pinpoint-data til ordination_minus_Lønstrup.xlsx")%>% 
+    janitor::clean_names()
+  # Remocing the first column (ID) in vegetation-dataset and cheking there are no NAs
+  
+  vegetation_data_no_ID = vegetation_data
+  
+  BrayDistance <- vegan::vegdist(vegetation_data_no_ID, method = "bray")
+  
+  
+  # Removing columns from env.data that is not used in the analysis 
+  
+  env.data = subset(meta.data, select = -c(order))
+  
+  
+  
+  env.data <- env.data %>% tidyr::drop_na()  
+  
+  Vars <- colnames(env.data)
+  Dataset <- "BrayDistance"
+  
+  Response = env.data
+  
+
+  gc()
+  AICc.PERMANOVA2 <- function(adonis2.model) {
+    
+    # check to see if object is an adonis2 model...
+    
+    if (is.na(adonis2.model$SumOfSqs[1]))
+      stop("object not output of adonis2 {vegan} ")
+    
+    # Ok, now extract appropriate terms from the adonis model Calculating AICc
+    # using residual sum of squares (RSS or SSE) since I don't think that adonis
+    # returns something I can use as a likelihood function... maximum likelihood
+    # and MSE estimates are the same when distribution is gaussian See e.g.
+    # https://www.jessicayung.com/mse-as-maximum-likelihood/;
+    # https://towardsdatascience.com/probability-concepts-explained-maximum-likelihood-estimation-c7b4342fdbb1
+    # So using RSS or MSE estimates is fine as long as the residuals are
+    # Gaussian https://robjhyndman.com/hyndsight/aic/ If models have different
+    # conditional likelihoods then AIC is not valid. However, comparing models
+    # with different error distributions is ok (above link).
+    
+    
+    RSS <- adonis2.model$SumOfSqs[ length(adonis2.model$SumOfSqs) - 1 ]
+    MSE <- RSS / adonis2.model$Df[ length(adonis2.model$Df) - 1 ]
+    
+    nn <- adonis2.model$Df[ length(adonis2.model$Df) ] + 1
+    
+    k <- nn - adonis2.model$Df[ length(adonis2.model$Df) - 1 ]
+    
+    
+    # AIC : 2*k + n*ln(RSS/n)
+    # AICc: AIC + [2k(k+1)]/(n-k-1)
+    
+    # based on https://en.wikipedia.org/wiki/Akaike_information_criterion;
+    # https://www.statisticshowto.datasciencecentral.com/akaikes-information-criterion/ ;
+    # https://www.researchgate.net/post/What_is_the_AIC_formula;
+    # http://avesbiodiv.mncn.csic.es/estadistica/ejemploaic.pdf;
+    # https://medium.com/better-programming/data-science-modeling-how-to-use-linear-regression-with-python-fdf6ca5481be 
+    
+    
+    AIC <- 2*k + nn*log(RSS/nn)
+    AICc <- AIC + (2*k*(k + 1))/(nn - k - 1)
+    
+    output <- data.frame(AICc = AICc, k = k, N = nn)
+    
+    return(output)   
+    
+  }
+  Temp <- AllFormsVegAbund[x,]
+  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "terms"))$AICc, silent = T)
+  Rs <- broom::tidy(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "terms")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  if((x %% 100) == 0){
+    sink("logVegAbund.txt", append = T)
+    cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllFormsVegAbund)))
+    cat("\n")
+    sink()
+  }
+  
+  bind_cols(Temp, Rs)
+}
+
+stopCluster(cl)
+
+saveRDS(Fs, "FSVegAbund.rds")
+
+Fs <- Fs %>% arrange(AICc)
+
+saveRDS(Fs, "FSVegAbund.rds")
+openxlsx::write.xlsx(Fs, "FSVegAbund.xlsx")
+```
+</details>
+
+As seen in table  \@ref(tab:SummaryVegAbund) there are `r readRDS("FSVegAbund.rds") %>% 
+    dplyr::filter(AICc > -Inf) %>% 
+    mutate(DeltaAICc = AICc - min(AICc)) %>% 
+    relocate(DeltaAICc, .after = AICc) %>% 
+    dplyr::filter(DeltaAICc <= 2) %>% 
+    nrow()` models within 2 AICc of each other, you can see there how many times a variable has been selected
+
+```{r SummaryVegAbund, echo = F}
+readRDS("FSVegAbund.rds") %>% 
+    dplyr::filter(AICc > -Inf) %>% 
+    mutate(DeltaAICc = AICc - min(AICc)) %>% 
+    relocate(DeltaAICc, .after = AICc) %>% 
+    dplyr::filter(DeltaAICc <= 2) %>% 
+    select_if(~sum(!is.na(.)) > 0) %>% 
+    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc) %>% 
+  ungroup() %>% 
+  mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
+  summarise_if(is.numeric, sum) %>% 
+  tidyr::pivot_longer(everything(), names_to = "Variable", values_to = "Number_of_models") %>% 
+  arrange(desc(Number_of_models))  %>% 
+  knitr::kable(digits = 3, caption = "Number of selected models were variables are present", format.args	= list(big.mark = ','))
+```
+
+
+Now we can see the top models that have a delta AICc within 2 of the best model in table  \@ref(tab:BestVegAbundModels) if expanded
+
+<details style=\"margin-bottom:10px;\">
+<summary>Show table of selected models for vegetation presence absence</summary>
+```{r BestVegAbundModels, echo=FALSE}
+Fs <- readRDS("FSVegAbund.rds")
+Fs %>% 
+  mutate(DeltaAICc = AICc - min(AICc)) %>% 
+  relocate(DeltaAICc, .after = AICc) %>% 
+  dplyr::filter(DeltaAICc <= 2) %>% 
+  select_if(~sum(!is.na(.)) > 0) %>% 
+  dplyr::select(-Dataset) %>% 
+  knitr::kable(digits = 3, caption = "Best models for vegetation abundance", format.args	= list(big.mark = ','))
+```
+</details>
+
 # Baterial models
 
 ## Abundance data
