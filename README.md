@@ -896,9 +896,39 @@ openxlsx::write.xlsx(Fs, "FSBacterialPA.xlsx")
 
 </details>
 
+As seen in table <a href="#tab:SummaryBacterialPA">3.2</a> there are 43
+models within 2 AICc of each other, you can see there how many times a
+variable has been selected
+
+| Variable          | Number_of_models |
+|:------------------|-----------------:|
+| habitat_type      |               43 |
+| water_content     |               14 |
+| oc_beregnet       |               13 |
+| coarse_silt_sand  |                8 |
+| shannon_veg       |                7 |
+| p_h\_water        |                5 |
+| wr                |                4 |
+| fine_silt         |                4 |
+| finesilt_and_clay |                4 |
+| ec                |                3 |
+| nitrat_nitrit     |                3 |
+| clay              |                3 |
+| ammonium          |                2 |
+| dexter_n          |                2 |
+
+Table 3.2: Number of selected models were variables are present
+
 Now we can see the top models that have a delta AICc within 2 of the
-best model in table <a href="#tab:BestBacterialPAModels">3.2</a> if
+best model in table <a href="#tab:BestBacterialPAModels">3.3</a> if
 expanded
+
+<details style="\&quot;margin-bottom:10px;\&quot;">
+<summary>
+
+Show table of selected models for bacterial presence
+
+</summary>
 
 | Form                                                                                 |    AICc | DeltaAICc | habitat_type | p_h\_water |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_veg | finesilt_and_clay | dexter_n |
 |:-------------------------------------------------------------------------------------|--------:|----------:|-------------:|-----------:|------:|--------------:|------:|---------:|--------------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
@@ -946,4 +976,6 @@ expanded
 | JaccardDistance \~ habitat_type + p_h\_water + coarse_silt_sand                      | -97.640 |     1.947 |        0.577 |      0.016 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.014 |          NA |                NA |       NA |
 | JaccardDistance \~ habitat_type + water_content + oc_beregnet + shannon_veg          | -97.633 |     1.953 |        0.577 |         NA |    NA |         0.023 |    NA |       NA |            NA |       0.016 |    NA |        NA |               NA |       0.014 |                NA |       NA |
 
-Table 3.2: Best models for bacterial presence absence datasets
+Table 3.3: Best models for bacterial presence absence datasets
+
+</details>
