@@ -1,6 +1,8 @@
 permute
 lattice
 vegan
+ggplot2
+ampvis2
 dplyr
 readxl
 foreach
