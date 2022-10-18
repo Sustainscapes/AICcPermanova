@@ -253,10 +253,26 @@ Summary2 <- readRDS("FS.rds") %>%
   mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
-  pivot_longer(everything(), names_to = "Variable", values_to = "Akaike_Adjusted_RSq") %>% 
-  arrange(desc(Akaike_Adjusted_RSq)) 
+  pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
+  arrange(desc(Full_Akaike_Adjusted_RSq))
 
-GlobalSummary <- full_join(Summary1, Summary2)
+Summary3 <- readRDS("FS.rds") %>% 
+  dplyr::filter(AICc > -Inf) %>% 
+  mutate(DeltaAICc = AICc - min(AICc)) %>% 
+  relocate(DeltaAICc, .after = AICc) %>% 
+  dplyr::filter(DeltaAICc <= 2) %>% 
+  mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
+  relocate(AICWeight, .after = DeltaAICc) %>%
+  tidyr::pivot_longer("habitat_type":"dexter_n") %>%
+  dplyr::filter(!is.na(value)) %>% 
+  #group_split(name) %>% 
+  group_by(name) %>% 
+  summarise(Subset_Akaike_Adjusted_RSq = weighted.mean(x = value, w = AICWeight)) %>% 
+  dplyr::rename(Variable = name)
+
+GlobalSummary <- left_join(Summary1, Summary2)
+
+GlobalSummary <- left_join(GlobalSummary, Summary3)
 
 knitr::kable(GlobalSummary, digits = 3, caption = "Number of selected models were variables are present and their Akaike Weighted R squared for the Marginal effect of the terms", format.args	= list(big.mark = ','))
 ```
@@ -495,10 +511,26 @@ Summary2 <- readRDS("FSVegAbund.rds") %>%
   mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
-  pivot_longer(everything(), names_to = "Variable", values_to = "Akaike_Adjusted_RSq") %>% 
-  arrange(desc(Akaike_Adjusted_RSq)) 
+  pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
+  arrange(desc(Full_Akaike_Adjusted_RSq))
+
+Summary3 <- readRDS("FSVegAbund.rds") %>% 
+  dplyr::filter(AICc > -Inf) %>% 
+  mutate(DeltaAICc = AICc - min(AICc)) %>% 
+  relocate(DeltaAICc, .after = AICc) %>% 
+  dplyr::filter(DeltaAICc <= 2) %>% 
+  mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
+  relocate(AICWeight, .after = DeltaAICc) %>%
+  tidyr::pivot_longer("habitat_type":"dexter_n") %>%
+  dplyr::filter(!is.na(value)) %>% 
+  #group_split(name) %>% 
+  group_by(name) %>% 
+  summarise(Subset_Akaike_Adjusted_RSq = weighted.mean(x = value, w = AICWeight)) %>% 
+  dplyr::rename(Variable = name)
 
 GlobalSummary <- left_join(Summary1, Summary2)
+
+GlobalSummary <- left_join(GlobalSummary, Summary3)
 
 knitr::kable(GlobalSummary, digits = 3, caption = "Number of selected models were variables are present and their Akaike Weighted R squared for the Marginal effect of the terms", format.args	= list(big.mark = ','))
 ```
@@ -748,10 +780,26 @@ Summary2 <- readRDS("FSBacterialAbund.rds") %>%
   mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
-  pivot_longer(everything(), names_to = "Variable", values_to = "Akaike_Adjusted_RSq") %>% 
-  arrange(desc(Akaike_Adjusted_RSq)) 
+  pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
+  arrange(desc(Full_Akaike_Adjusted_RSq))
+
+Summary3 <- readRDS("FSBacterialAbund.rds") %>% 
+  dplyr::filter(AICc > -Inf) %>% 
+  mutate(DeltaAICc = AICc - min(AICc)) %>% 
+  relocate(DeltaAICc, .after = AICc) %>% 
+  dplyr::filter(DeltaAICc <= 2) %>% 
+  mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
+  relocate(AICWeight, .after = DeltaAICc) %>%
+  tidyr::pivot_longer("habitat_type":"dexter_n") %>%
+  dplyr::filter(!is.na(value)) %>% 
+  #group_split(name) %>% 
+  group_by(name) %>% 
+  summarise(Subset_Akaike_Adjusted_RSq = weighted.mean(x = value, w = AICWeight)) %>% 
+  dplyr::rename(Variable = name)
 
 GlobalSummary <- left_join(Summary1, Summary2)
+
+GlobalSummary <- left_join(GlobalSummary, Summary3)
 
 knitr::kable(GlobalSummary, digits = 3, caption = "Number of selected models were variables are present and their Akaike Weighted R squared for the Marginal effect of the terms", format.args	= list(big.mark = ','))
 ```

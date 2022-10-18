@@ -271,23 +271,23 @@ As seen in table <a href="#tab:SummaryPlantPA">2.1</a> there are 113
 models within 2 AICc of each other, you can see there how many times a
 variable has been selected
 
-| Variable          | Number_of_models | Akaike_Adjusted_RSq |
-|:------------------|-----------------:|--------------------:|
-| habitat_type      |              113 |               0.341 |
-| oc_beregnet       |               49 |               0.012 |
-| ec                |               42 |               0.011 |
-| fine_silt         |               36 |               0.008 |
-| coarse_silt_sand  |               31 |               0.005 |
-| p_h\_water        |               26 |               0.006 |
-| finesilt_and_clay |               24 |               0.005 |
-| water_content     |               22 |               0.005 |
-| wr                |               20 |               0.004 |
-| clay              |               18 |               0.003 |
-| nitrat_nitrit     |                7 |               0.001 |
-| dexter_n          |                7 |               0.001 |
-| area              |                2 |               0.005 |
-| shannon_bak       |                2 |               0.000 |
-| ammonium          |                1 |               0.000 |
+| Variable          | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
+|:------------------|-----------------:|-------------------------:|---------------------------:|
+| habitat_type      |              113 |                    0.341 |                      0.341 |
+| oc_beregnet       |               49 |                    0.012 |                      0.027 |
+| ec                |               42 |                    0.011 |                      0.029 |
+| fine_silt         |               36 |                    0.008 |                      0.027 |
+| coarse_silt_sand  |               31 |                    0.005 |                      0.020 |
+| p_h\_water        |               26 |                    0.006 |                      0.026 |
+| finesilt_and_clay |               24 |                    0.005 |                      0.022 |
+| water_content     |               22 |                    0.005 |                      0.025 |
+| wr                |               20 |                    0.004 |                      0.022 |
+| clay              |               18 |                    0.003 |                      0.021 |
+| nitrat_nitrit     |                7 |                    0.001 |                      0.017 |
+| dexter_n          |                7 |                    0.001 |                      0.018 |
+| area              |                2 |                    0.005 |                      0.309 |
+| shannon_bak       |                2 |                    0.000 |                      0.013 |
+| ammonium          |                1 |                    0.000 |                      0.009 |
 
 Table 2.1: Number of selected models were variables are present and
 their Akaike Weighted R squared for the Marginal effect of the terms
@@ -635,11 +635,11 @@ As seen in table <a href="#tab:SummaryVegAbund">2.3</a> there are 2
 models within 2 AICc of each other, you can see there how many times a
 variable has been selected
 
-| Variable     | Number_of_models | Akaike_Adjusted_RSq |
-|:-------------|-----------------:|--------------------:|
-| habitat_type |                2 |               0.166 |
-| area         |                2 |               0.311 |
-| dexter_n     |                1 |               0.003 |
+| Variable     | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
+|:-------------|-----------------:|-------------------------:|---------------------------:|
+| habitat_type |                2 |                    0.166 |                      0.166 |
+| area         |                2 |                    0.311 |                      0.311 |
+| dexter_n     |                1 |                    0.003 |                      0.009 |
 
 Table 2.3: Number of selected models were variables are present and
 their Akaike Weighted R squared for the Marginal effect of the terms
@@ -888,21 +888,21 @@ As seen in table <a href="#tab:SummaryBacterialAbund">3.1</a> there are
 69 models within 2 AICc of each other, you can see there how many times
 a variable has been selected
 
-| Variable          | Number_of_models | Akaike_Adjusted_RSq |
-|:------------------|-----------------:|--------------------:|
-| habitat_type      |               69 |               0.362 |
-| oc_beregnet       |               29 |               0.009 |
-| water_content     |               26 |               0.008 |
-| shannon_veg       |               20 |               0.006 |
-| p_h\_water        |               19 |               0.006 |
-| coarse_silt_sand  |               14 |               0.002 |
-| wr                |               12 |               0.003 |
-| finesilt_and_clay |               11 |               0.001 |
-| fine_silt         |                7 |               0.001 |
-| ec                |                6 |               0.001 |
-| ammonium          |                6 |               0.001 |
-| clay              |                2 |               0.000 |
-| dexter_n          |                2 |               0.000 |
+| Variable          | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
+|:------------------|-----------------:|-------------------------:|---------------------------:|
+| habitat_type      |               69 |                    0.362 |                      0.362 |
+| oc_beregnet       |               29 |                    0.009 |                      0.022 |
+| water_content     |               26 |                    0.008 |                      0.022 |
+| shannon_veg       |               20 |                    0.006 |                      0.021 |
+| p_h\_water        |               19 |                    0.006 |                      0.021 |
+| coarse_silt_sand  |               14 |                    0.002 |                      0.014 |
+| wr                |               12 |                    0.003 |                      0.019 |
+| finesilt_and_clay |               11 |                    0.001 |                      0.012 |
+| fine_silt         |                7 |                    0.001 |                      0.013 |
+| ec                |                6 |                    0.001 |                      0.014 |
+| ammonium          |                6 |                    0.001 |                      0.013 |
+| clay              |                2 |                    0.000 |                      0.012 |
+| dexter_n          |                2 |                    0.000 |                      0.012 |
 
 Table 3.1: Number of selected models were variables are present and
 their Akaike Weighted R squared for the Marginal effect of the terms
