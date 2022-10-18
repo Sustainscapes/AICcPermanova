@@ -32,6 +32,7 @@ library(readxl)
 library(parallel)
 library(foreach)
 library(doParallel)
+library(tidyr)
 ```
 
 # Vegetation models
@@ -197,8 +198,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms"))$AICc, silent = T)
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("log.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
@@ -228,7 +229,7 @@ As seen in table  \@ref(tab:SummaryPlantPA) there are `r readRDS("FS.rds") %>%
     nrow()` models within 2 AICc of each other, you can see there how many times a variable has been selected
 
 ```{r SummaryPlantPA, echo = F}
-readRDS("FS.rds") %>% 
+Summary1 <- readRDS("FS.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
@@ -239,8 +240,25 @@ readRDS("FS.rds") %>%
   mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
   summarise_if(is.numeric, sum) %>% 
   tidyr::pivot_longer(everything(), names_to = "Variable", values_to = "Number_of_models") %>% 
-  arrange(desc(Number_of_models))  %>% 
-  knitr::kable(digits = 3, caption = "Number of selected models were variables are present", format.args	= list(big.mark = ','))
+  arrange(desc(Number_of_models))  
+
+Summary2 <- readRDS("FS.rds") %>% 
+  dplyr::filter(AICc > -Inf) %>% 
+  mutate(DeltaAICc = AICc - min(AICc)) %>% 
+  relocate(DeltaAICc, .after = AICc) %>% 
+  dplyr::filter(DeltaAICc <= 2) %>% 
+  mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
+  relocate(AICWeight, .after = DeltaAICc) %>% 
+  mutate_at(vars("habitat_type":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
+  summarise_if(is.numeric, sum) %>% 
+  dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Akaike_Adjusted_RSq") %>% 
+  arrange(desc(Akaike_Adjusted_RSq)) 
+
+GlobalSummary <- full_join(Summary1, Summary2)
+
+knitr::kable(GlobalSummary, digits = 3, caption = "Number of selected models were variables are present and their Akaike Weighted R squared for the Marginal effect of the terms", format.args	= list(big.mark = ','))
 ```
 
 
@@ -421,8 +439,8 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
     
   }
   Temp <- AllFormsVegAbund[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "terms"))$AICc, silent = T)
-  Rs <- broom::tidy(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "terms")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Rs <- broom::tidy(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logVegAbund.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllFormsVegAbund)))
@@ -452,7 +470,8 @@ As seen in table  \@ref(tab:SummaryVegAbund) there are `r readRDS("FSVegAbund.rd
     nrow()` models within 2 AICc of each other, you can see there how many times a variable has been selected
 
 ```{r SummaryVegAbund, echo = F}
-readRDS("FSVegAbund.rds") %>% 
+
+Summary1 <- readRDS("FSVegAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
@@ -463,8 +482,25 @@ readRDS("FSVegAbund.rds") %>%
   mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
   summarise_if(is.numeric, sum) %>% 
   tidyr::pivot_longer(everything(), names_to = "Variable", values_to = "Number_of_models") %>% 
-  arrange(desc(Number_of_models))  %>% 
-  knitr::kable(digits = 3, caption = "Number of selected models were variables are present", format.args	= list(big.mark = ','))
+  arrange(desc(Number_of_models))  
+
+Summary2 <- readRDS("FSVegAbund.rds") %>% 
+  dplyr::filter(AICc > -Inf) %>% 
+  mutate(DeltaAICc = AICc - min(AICc)) %>% 
+  relocate(DeltaAICc, .after = AICc) %>% 
+  dplyr::filter(DeltaAICc <= 2) %>% 
+  mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
+  relocate(AICWeight, .after = DeltaAICc) %>% 
+  mutate_at(vars("habitat_type":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
+  summarise_if(is.numeric, sum) %>% 
+  dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Akaike_Adjusted_RSq") %>% 
+  arrange(desc(Akaike_Adjusted_RSq)) 
+
+GlobalSummary <- left_join(Summary1, Summary2)
+
+knitr::kable(GlobalSummary, digits = 3, caption = "Number of selected models were variables are present and their Akaike Weighted R squared for the Marginal effect of the terms", format.args	= list(big.mark = ','))
 ```
 
 
@@ -656,8 +692,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms"))$AICc, silent = T)
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logBacterialAbund.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
@@ -688,7 +724,7 @@ As seen in table  \@ref(tab:SummaryBacterialAbund) there are `r readRDS("FSBacte
     nrow()` models within 2 AICc of each other, you can see there how many times a variable has been selected
 
 ```{r SummaryBacterialAbund, echo = F}
-readRDS("FSBacterialAbund.rds") %>% 
+Summary1 <- readRDS("FSBacterialAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
@@ -699,12 +735,29 @@ readRDS("FSBacterialAbund.rds") %>%
   mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
   summarise_if(is.numeric, sum) %>% 
   tidyr::pivot_longer(everything(), names_to = "Variable", values_to = "Number_of_models") %>% 
-  arrange(desc(Number_of_models))  %>% 
-  knitr::kable(digits = 3, caption = "Number of selected models were variables are present", format.args	= list(big.mark = ','))
+  arrange(desc(Number_of_models))  
+
+Summary2 <- readRDS("FSBacterialAbund.rds") %>% 
+  dplyr::filter(AICc > -Inf) %>% 
+  mutate(DeltaAICc = AICc - min(AICc)) %>% 
+  relocate(DeltaAICc, .after = AICc) %>% 
+  dplyr::filter(DeltaAICc <= 2) %>% 
+  mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
+  relocate(AICWeight, .after = DeltaAICc) %>% 
+  mutate_at(vars("habitat_type":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
+  summarise_if(is.numeric, sum) %>% 
+  dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Akaike_Adjusted_RSq") %>% 
+  arrange(desc(Akaike_Adjusted_RSq)) 
+
+GlobalSummary <- left_join(Summary1, Summary2)
+
+knitr::kable(GlobalSummary, digits = 3, caption = "Number of selected models were variables are present and their Akaike Weighted R squared for the Marginal effect of the terms", format.args	= list(big.mark = ','))
 ```
 
 
-Now we can see the top models that have a delta AICc within 2 of the best model in table  \@ref(tab:BestBacterialPAModels) if expanded
+Now we can see the top models that have a delta AICc within 2 of the best model in table  \@ref(tab:BestBacterialAbundModels) if expanded
 
 <details style=\"margin-bottom:10px;\">
 <summary>Show table of selected models for bacterial abundance</summary>
@@ -729,7 +782,7 @@ We read in the datasets for environmental layers and generate all possible model
 
 <details style=\"margin-bottom:10px;\">
 <summary>Model generator bacterial abundance</summary>
-```{r ModelGeneratorBacterialPA, cache = T}
+```{r ModelGeneratorBacterialPA, cache = T, eval =F}
 METADATAS <- list.files(pattern = "PERMANOVA_BACTERIA_", full.names = T)
 
 AllForms <- list()
@@ -805,7 +858,7 @@ Then in the following code each model is fitted and AICc is calculated to order 
 
 <details style=\"margin-bottom:10px;\">
 <summary>Model fitting code bacterial presence absence</summary>
-```{r ModelFittingBacterialPA, cache = T}
+```{r ModelFittingBacterialPA, cache = T, eval = F}
 if(file.exists("logBacterialPA.txt")){
   file.remove("logBacterialPA.txt")
 }
@@ -892,8 +945,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms"))$AICc, silent = T)
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "terms")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logBacterialPA.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
@@ -922,7 +975,7 @@ As seen in table  \@ref(tab:SummaryBacterialPA) there are `r readRDS("FSBacteria
     dplyr::filter(DeltaAICc <= 2) %>% 
     nrow()` models within 2 AICc of each other, you can see there how many times a variable has been selected
 
-```{r SummaryBacterialPA, echo = F}
+```{r SummaryBacterialPA, echo = F, eval = F}
 readRDS("FSBacterialPA.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
@@ -943,7 +996,7 @@ Now we can see the top models that have a delta AICc within 2 of the best model 
 
 <details style=\"margin-bottom:10px;\">
 <summary>Show table of selected models for bacterial presence</summary>
-```{r BestBacterialPAModels, echo=FALSE}
+```{r BestBacterialPAModels, echo=FALSE, eval = F}
 Fs <- readRDS("FSBacterialPA.rds")
 Fs %>% 
   dplyr::filter(AICc > -Inf) %>% 
