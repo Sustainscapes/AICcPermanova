@@ -250,7 +250,7 @@ As seen in table  \@ref(tab:SummaryPlantPA) there are `r readRDS("FS.rds") %>%
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
-    nrow()` models within 2 AICc where the max VIF is lower than 7 of each other, you can see there how many times a variable has been selected
+    nrow()` models within 2 AICc where the max VIF is lower or equal than 6 of each other, you can see there how many times a variable has been selected
 
 ```{r SummaryPlantPA, echo = F}
 Summary1 <- readRDS("FS.rds") %>% 

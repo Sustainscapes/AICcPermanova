@@ -277,8 +277,8 @@ openxlsx::write.xlsx(Fs, "FS.xlsx")
 </details>
 
 As seen in table <a href="#tab:SummaryPlantPA">2.1</a> there are 35
-models within 2 AICc where the max VIF is lower than 7 of each other,
-you can see there how many times a variable has been selected
+models within 2 AICc where the max VIF is lower or equal than 6 of each
+other, you can see there how many times a variable has been selected
 
 | Variable          | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
 |:------------------|-----------------:|-------------------------:|---------------------------:|
