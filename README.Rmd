@@ -246,21 +246,21 @@ openxlsx::write.xlsx(Fs, "FS.xlsx")
 
 As seen in table  \@ref(tab:SummaryPlantPA) there are `r readRDS("FS.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 10) %>% 
+    dplyr::filter(Max_VIF <= 6) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
-    nrow()` models within 2 AICc where the max VIF is lower than 5 of each other, you can see there how many times a variable has been selected
+    nrow()` models within 2 AICc where the max VIF is lower than 7 of each other, you can see there how many times a variable has been selected
 
 ```{r SummaryPlantPA, echo = F}
 Summary1 <- readRDS("FS.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 10) %>% 
+    dplyr::filter(Max_VIF <= 6) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
     select_if(~sum(!is.na(.)) > 0) %>% 
-    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc) %>% 
+    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc, -Max_VIF) %>% 
   ungroup() %>% 
   mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
   summarise_if(is.numeric, sum) %>% 
@@ -269,7 +269,7 @@ Summary1 <- readRDS("FS.rds") %>%
 
 Summary2 <- readRDS("FS.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
@@ -284,7 +284,7 @@ Summary2 <- readRDS("FS.rds") %>%
 
 Summary3 <- readRDS("FS.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
@@ -312,7 +312,7 @@ Now we can see the top models that have a delta AICc within 2 of the best model 
 ```{r BestPLantModels, echo=FALSE}
 Fs <- readRDS("FS.rds")
 Fs %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
@@ -530,7 +530,7 @@ openxlsx::write.xlsx(Fs, "FSVegAbund.xlsx")
 
 As seen in table  \@ref(tab:SummaryVegAbund) there are `r readRDS("FSVegAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 10) %>% 
+    dplyr::filter(Max_VIF <= 6) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
@@ -540,12 +540,12 @@ As seen in table  \@ref(tab:SummaryVegAbund) there are `r readRDS("FSVegAbund.rd
 
 Summary1 <- readRDS("FSVegAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 10) %>% 
+    dplyr::filter(Max_VIF <= 6) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
     select_if(~sum(!is.na(.)) > 0) %>% 
-    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc) %>% 
+    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc, -Max_VIF) %>% 
   ungroup() %>% 
   mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
   summarise_if(is.numeric, sum) %>% 
@@ -554,7 +554,7 @@ Summary1 <- readRDS("FSVegAbund.rds") %>%
 
 Summary2 <- readRDS("FSVegAbund.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>%
@@ -569,7 +569,7 @@ Summary2 <- readRDS("FSVegAbund.rds") %>%
 
 Summary3 <- readRDS("FSVegAbund.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
@@ -597,11 +597,11 @@ Now we can see the top models that have a delta AICc within 2 of the best model 
 ```{r BestVegAbundModels, echo=FALSE}
 Fs <- readRDS("FSVegAbund.rds")
 Fs %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   select_if(~sum(!is.na(.)) > 0) %>% 
   dplyr::select(-Dataset) %>% 
   knitr::kable(digits = 3, caption = "Best models for vegetation abundance", format.args	= list(big.mark = ','))
@@ -828,7 +828,7 @@ openxlsx::write.xlsx(Fs, "FSBacterialAbund.xlsx")
 
 As seen in table  \@ref(tab:SummaryBacterialAbund) there are `r readRDS("FSBacterialAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>%
-    dplyr::filter(Max_VIF <= 10) %>% 
+    dplyr::filter(Max_VIF <= 6) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
@@ -837,12 +837,12 @@ As seen in table  \@ref(tab:SummaryBacterialAbund) there are `r readRDS("FSBacte
 ```{r SummaryBacterialAbund, echo = F}
 Summary1 <- readRDS("FSBacterialAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 10) %>% 
+    dplyr::filter(Max_VIF <= 6) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>%
     select_if(~sum(!is.na(.)) > 0) %>% 
-    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc) %>% 
+    dplyr::select(-Dataset, -Form, -AICc, -DeltaAICc, -Max_VIF) %>% 
   ungroup() %>% 
   mutate_if(is.numeric, ~ifelse(is.na(.x), 0 , 1)) %>% 
   summarise_if(is.numeric, sum) %>% 
@@ -851,7 +851,7 @@ Summary1 <- readRDS("FSBacterialAbund.rds") %>%
 
 Summary2 <- readRDS("FSBacterialAbund.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
@@ -866,7 +866,7 @@ Summary2 <- readRDS("FSBacterialAbund.rds") %>%
 
 Summary3 <- readRDS("FSBacterialAbund.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
@@ -895,7 +895,7 @@ Now we can see the top models that have a delta AICc within 2 of the best model 
 Fs <- readRDS("FSBacterialAbund.rds")
 Fs %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 10) %>% 
+  dplyr::filter(Max_VIF <= 6) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 

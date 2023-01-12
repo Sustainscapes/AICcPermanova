@@ -276,26 +276,24 @@ openxlsx::write.xlsx(Fs, "FS.xlsx")
 
 </details>
 
-As seen in table <a href="#tab:SummaryPlantPA">2.1</a> there are 51
-models within 2 AICc where the max VIF is lower than 5 of each other,
+As seen in table <a href="#tab:SummaryPlantPA">2.1</a> there are 35
+models within 2 AICc where the max VIF is lower than 7 of each other,
 you can see there how many times a variable has been selected
 
 | Variable          | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
 |:------------------|-----------------:|-------------------------:|---------------------------:|
-| Max_VIF           |               51 |                  336.592 |                         NA |
-| habitat_type      |               51 |                    0.366 |                      0.366 |
-| oc_beregnet       |               18 |                    0.011 |                      0.032 |
-| fine_silt         |               16 |                    0.009 |                      0.029 |
-| ec                |               15 |                    0.009 |                      0.030 |
-| wr                |                9 |                    0.004 |                      0.022 |
-| water_content     |                8 |                    0.004 |                      0.024 |
-| clay              |                8 |                    0.003 |                      0.021 |
-| coarse_silt_sand  |                8 |                    0.003 |                      0.023 |
-| nitrat_nitrit     |                6 |                    0.002 |                      0.017 |
-| finesilt_and_clay |                6 |                    0.003 |                      0.025 |
-| dexter_n          |                5 |                    0.001 |                      0.018 |
+| habitat_type      |               35 |                    0.372 |                      0.372 |
+| fine_silt         |               11 |                    0.009 |                      0.028 |
+| ec                |               10 |                    0.009 |                      0.030 |
+| oc_beregnet       |                9 |                    0.008 |                      0.030 |
+| clay              |                6 |                    0.003 |                      0.021 |
+| wr                |                5 |                    0.003 |                      0.023 |
+| nitrat_nitrit     |                5 |                    0.002 |                      0.017 |
+| dexter_n          |                5 |                    0.002 |                      0.018 |
+| finesilt_and_clay |                4 |                    0.003 |                      0.025 |
+| coarse_silt_sand  |                3 |                    0.002 |                      0.022 |
+| water_content     |                2 |                    0.001 |                      0.024 |
 | ammonium          |                1 |                    0.000 |                      0.009 |
-| shannon_bak       |                1 |                    0.000 |                      0.013 |
 
 Table 2.1: Number of selected models were variables are present and
 their Akaike Weighted R squared for the Marginal effect of the terms
@@ -310,59 +308,43 @@ Show table of selected models for vegetation presence absence
 
 </summary>
 
-| Form                                                                              |    AICc | DeltaAICc | Max_VIF | habitat_type |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_bak | finesilt_and_clay | dexter_n |
-|:----------------------------------------------------------------------------------|--------:|----------:|--------:|-------------:|------:|--------------:|------:|---------:|--------------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
-| JaccardDistance \~ habitat_type                                                   | -60.591 |     0.000 |   0.000 |        0.411 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec                                              | -60.371 |     0.220 |   6.000 |        0.351 | 0.029 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + fine_silt                                  | -60.298 |     0.293 |   6.000 |        0.337 | 0.032 |            NA |    NA |       NA |            NA |          NA |    NA |     0.030 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + fine_silt                                       | -60.217 |     0.374 |   6.000 |        0.385 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.027 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + oc_beregnet                                     | -60.055 |     0.536 |   6.000 |        0.403 |    NA |            NA |    NA |       NA |            NA |       0.025 |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + oc_beregnet                                | -60.044 |     0.547 |   6.792 |        0.341 | 0.031 |            NA |    NA |       NA |            NA |       0.027 |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + water_content + oc_beregnet                     | -60.002 |     0.589 |   6.000 |        0.382 |    NA |         0.030 |    NA |       NA |            NA |       0.040 |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + oc_beregnet + fine_silt                         | -59.990 |     0.601 |   6.000 |        0.379 |    NA |            NA |    NA |       NA |            NA |       0.029 |    NA |     0.030 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + finesilt_and_clay                               | -59.913 |     0.678 |   6.000 |        0.387 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.024 |       NA |
-| JaccardDistance \~ habitat_type + wr                                              | -59.843 |     0.747 |   6.000 |        0.368 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + finesilt_and_clay                          | -59.789 |     0.802 |   6.000 |        0.336 | 0.030 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.025 |       NA |
-| JaccardDistance \~ habitat_type + oc_beregnet + coarse_silt_sand                  | -59.765 |     0.826 |   6.000 |        0.382 |    NA |            NA |    NA |       NA |            NA |       0.035 |    NA |        NA |            0.028 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + oc_beregnet + finesilt_and_clay                 | -59.765 |     0.826 |   6.000 |        0.382 |    NA |            NA |    NA |       NA |            NA |       0.030 |    NA |        NA |               NA |          NA |             0.028 |       NA |
-| JaccardDistance \~ habitat_type + ec + wr                                         | -59.684 |     0.906 |   7.707 |        0.337 | 0.029 |            NA | 0.024 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + fine_silt + coarse_silt_sand                    | -59.573 |     1.018 |   8.991 |        0.382 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.033 |            0.024 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + clay                                            | -59.562 |     1.029 |   6.000 |        0.394 |    NA |            NA |    NA |       NA |            NA |          NA | 0.020 |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + wr + fine_silt                                  | -59.492 |     1.098 |   6.000 |        0.356 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |     0.027 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + coarse_silt_sand                                | -59.425 |     1.165 |   6.000 |        0.391 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.018 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + dexter_n                                        | -59.409 |     1.182 |   6.000 |        0.409 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.018 |
-| JaccardDistance \~ habitat_type + nitrat_nitrit                                   | -59.345 |     1.246 |   6.000 |        0.391 |    NA |            NA |    NA |       NA |         0.017 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + oc_beregnet + clay                              | -59.332 |     1.259 |   6.000 |        0.388 |    NA |            NA |    NA |       NA |            NA |       0.029 | 0.023 |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + clay + fine_silt                           | -59.314 |     1.277 |   6.000 |        0.335 | 0.032 |            NA |    NA |       NA |            NA |          NA | 0.021 |     0.032 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + water_content + oc_beregnet + fine_silt         | -59.293 |     1.298 |   9.355 |        0.355 |    NA |         0.024 |    NA |       NA |            NA |       0.037 |    NA |     0.024 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + fine_silt + coarse_silt_sand               | -59.285 |     1.306 |   8.995 |        0.329 | 0.028 |            NA |    NA |       NA |            NA |          NA |    NA |     0.033 |            0.021 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + water_content + oc_beregnet + coarse_silt_sand  | -59.266 |     1.325 |   9.313 |        0.361 |    NA |         0.026 |    NA |       NA |            NA |       0.043 |    NA |        NA |            0.024 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + water_content + oc_beregnet + finesilt_and_clay | -59.266 |     1.325 |   9.313 |        0.361 |    NA |         0.026 |    NA |       NA |            NA |       0.039 |    NA |        NA |               NA |          NA |             0.024 |       NA |
-| JaccardDistance \~ habitat_type + clay + fine_silt                                | -59.260 |     1.331 |   6.000 |        0.383 |    NA |            NA |    NA |       NA |            NA |          NA | 0.021 |     0.028 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + clay                                       | -59.258 |     1.333 |   6.000 |        0.339 | 0.028 |            NA |    NA |       NA |            NA |          NA | 0.019 |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + dexter_n                                   | -59.223 |     1.368 |   6.000 |        0.351 | 0.029 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.019 |
-| JaccardDistance \~ habitat_type + ec + water_content                              | -59.205 |     1.386 |   9.213 |        0.315 | 0.032 |         0.019 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + wr + oc_beregnet                                | -59.192 |     1.399 |   6.000 |        0.362 |    NA |            NA | 0.022 |       NA |            NA |       0.024 |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + water_content                                   | -59.183 |     1.408 |   6.000 |        0.384 |    NA |         0.016 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + water_content + oc_beregnet + clay              | -59.150 |     1.441 |   8.120 |        0.370 |    NA |         0.029 |    NA |       NA |            NA |       0.041 | 0.022 |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + nitrat_nitrit                              | -59.141 |     1.450 |   6.000 |        0.347 | 0.029 |            NA |    NA |       NA |         0.018 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + coarse_silt_sand                           | -59.136 |     1.454 |   6.000 |        0.326 | 0.028 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.018 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + wr + finesilt_and_clay                          | -59.120 |     1.471 |   6.000 |        0.355 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.024 |       NA |
-| JaccardDistance \~ habitat_type + oc_beregnet + clay + fine_silt                  | -59.044 |     1.547 |   6.000 |        0.377 |    NA |            NA |    NA |       NA |            NA |       0.029 | 0.021 |     0.028 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + wr + oc_beregnet + fine_silt                    | -59.030 |     1.560 |   8.035 |        0.354 |    NA |            NA | 0.021 |       NA |            NA |       0.026 |    NA |     0.030 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + fine_silt + dexter_n                       | -59.030 |     1.561 |   6.000 |        0.337 | 0.033 |            NA |    NA |       NA |            NA |          NA |    NA |     0.029 |               NA |          NA |                NA |    0.018 |
-| JaccardDistance \~ habitat_type + shannon_bak                                     | -58.918 |     1.672 |   8.715 |        0.335 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.013 |                NA |       NA |
-| JaccardDistance \~ habitat_type + fine_silt + dexter_n                            | -58.878 |     1.713 |   6.000 |        0.386 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.026 |               NA |          NA |                NA |    0.017 |
-| JaccardDistance \~ habitat_type + nitrat_nitrit + oc_beregnet                     | -58.800 |     1.791 |   6.000 |        0.382 |    NA |            NA |    NA |       NA |         0.018 |       0.026 |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + nitrat_nitrit + fine_silt                  | -58.782 |     1.809 |   6.000 |        0.338 | 0.032 |            NA |    NA |       NA |         0.016 |          NA |    NA |     0.028 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + ec + nitrat_nitrit + oc_beregnet                | -58.762 |     1.829 |   7.782 |        0.336 | 0.031 |            NA |    NA |       NA |         0.018 |       0.027 |    NA |        NA |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + nitrat_nitrit + fine_silt                       | -58.698 |     1.893 |   6.000 |        0.382 |    NA |            NA |    NA |       NA |         0.015 |          NA |    NA |     0.025 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + water_content + fine_silt                       | -58.690 |     1.900 |   6.303 |        0.352 |    NA |         0.015 |    NA |       NA |            NA |          NA |    NA |     0.026 |               NA |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + clay + coarse_silt_sand                         | -58.689 |     1.902 |   6.967 |        0.383 |    NA |            NA |    NA |       NA |            NA |          NA | 0.024 |        NA |            0.022 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + wr + oc_beregnet + coarse_silt_sand             | -58.664 |     1.927 |   8.496 |        0.352 |    NA |            NA | 0.020 |       NA |            NA |       0.033 |    NA |        NA |            0.026 |          NA |                NA |       NA |
-| JaccardDistance \~ habitat_type + wr + oc_beregnet + finesilt_and_clay            | -58.664 |     1.927 |   8.496 |        0.352 |    NA |            NA | 0.020 |       NA |            NA |       0.027 |    NA |        NA |               NA |          NA |             0.026 |       NA |
-| JaccardDistance \~ habitat_type + wr + dexter_n                                   | -58.602 |     1.989 |   6.000 |        0.367 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.018 |
-| JaccardDistance \~ habitat_type + ammonium                                        | -58.594 |     1.997 |   6.000 |        0.389 |    NA |            NA |    NA |    0.009 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| Form                                                              |    AICc | DeltaAICc | Max_VIF | habitat_type |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet |  clay | fine_silt | coarse_silt_sand | finesilt_and_clay | dexter_n |
+|:------------------------------------------------------------------|--------:|----------:|--------:|-------------:|------:|--------------:|------:|---------:|--------------:|------------:|------:|----------:|-----------------:|------------------:|---------:|
+| JaccardDistance \~ habitat_type                                   | -60.591 |     0.000 |       0 |        0.411 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec                              | -60.371 |     0.220 |       6 |        0.351 | 0.029 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + fine_silt                  | -60.298 |     0.293 |       6 |        0.337 | 0.032 |            NA |    NA |       NA |            NA |          NA |    NA |     0.030 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + fine_silt                       | -60.217 |     0.374 |       6 |        0.385 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.027 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet                     | -60.055 |     0.536 |       6 |        0.403 |    NA |            NA |    NA |       NA |            NA |       0.025 |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content + oc_beregnet     | -60.002 |     0.589 |       6 |        0.382 |    NA |         0.030 |    NA |       NA |            NA |       0.040 |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + fine_silt         | -59.990 |     0.601 |       6 |        0.379 |    NA |            NA |    NA |       NA |            NA |       0.029 |    NA |     0.030 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + finesilt_and_clay               | -59.913 |     0.678 |       6 |        0.387 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |             0.024 |       NA |
+| JaccardDistance \~ habitat_type + wr                              | -59.843 |     0.747 |       6 |        0.368 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + finesilt_and_clay          | -59.789 |     0.802 |       6 |        0.336 | 0.030 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |             0.025 |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + coarse_silt_sand  | -59.765 |     0.826 |       6 |        0.382 |    NA |            NA |    NA |       NA |            NA |       0.035 |    NA |        NA |            0.028 |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + finesilt_and_clay | -59.765 |     0.826 |       6 |        0.382 |    NA |            NA |    NA |       NA |            NA |       0.030 |    NA |        NA |               NA |             0.028 |       NA |
+| JaccardDistance \~ habitat_type + clay                            | -59.562 |     1.029 |       6 |        0.394 |    NA |            NA |    NA |       NA |            NA |          NA | 0.020 |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + wr + fine_silt                  | -59.492 |     1.098 |       6 |        0.356 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |     0.027 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + coarse_silt_sand                | -59.425 |     1.165 |       6 |        0.391 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.018 |                NA |       NA |
+| JaccardDistance \~ habitat_type + dexter_n                        | -59.409 |     1.182 |       6 |        0.409 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |                NA |    0.018 |
+| JaccardDistance \~ habitat_type + nitrat_nitrit                   | -59.345 |     1.246 |       6 |        0.391 |    NA |            NA |    NA |       NA |         0.017 |          NA |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + clay              | -59.332 |     1.259 |       6 |        0.388 |    NA |            NA |    NA |       NA |            NA |       0.029 | 0.023 |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + clay + fine_silt           | -59.314 |     1.277 |       6 |        0.335 | 0.032 |            NA |    NA |       NA |            NA |          NA | 0.021 |     0.032 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + clay + fine_silt                | -59.260 |     1.331 |       6 |        0.383 |    NA |            NA |    NA |       NA |            NA |          NA | 0.021 |     0.028 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + clay                       | -59.258 |     1.333 |       6 |        0.339 | 0.028 |            NA |    NA |       NA |            NA |          NA | 0.019 |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + dexter_n                   | -59.223 |     1.368 |       6 |        0.351 | 0.029 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |                NA |    0.019 |
+| JaccardDistance \~ habitat_type + wr + oc_beregnet                | -59.192 |     1.399 |       6 |        0.362 |    NA |            NA | 0.022 |       NA |            NA |       0.024 |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + water_content                   | -59.183 |     1.408 |       6 |        0.384 |    NA |         0.016 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + nitrat_nitrit              | -59.141 |     1.450 |       6 |        0.347 | 0.029 |            NA |    NA |       NA |         0.018 |          NA |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + coarse_silt_sand           | -59.136 |     1.454 |       6 |        0.326 | 0.028 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.018 |                NA |       NA |
+| JaccardDistance \~ habitat_type + wr + finesilt_and_clay          | -59.120 |     1.471 |       6 |        0.355 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |             0.024 |       NA |
+| JaccardDistance \~ habitat_type + oc_beregnet + clay + fine_silt  | -59.044 |     1.547 |       6 |        0.377 |    NA |            NA |    NA |       NA |            NA |       0.029 | 0.021 |     0.028 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + fine_silt + dexter_n       | -59.030 |     1.561 |       6 |        0.337 | 0.033 |            NA |    NA |       NA |            NA |          NA |    NA |     0.029 |               NA |                NA |    0.018 |
+| JaccardDistance \~ habitat_type + fine_silt + dexter_n            | -58.878 |     1.713 |       6 |        0.386 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.026 |               NA |                NA |    0.017 |
+| JaccardDistance \~ habitat_type + nitrat_nitrit + oc_beregnet     | -58.800 |     1.791 |       6 |        0.382 |    NA |            NA |    NA |       NA |         0.018 |       0.026 |    NA |        NA |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + ec + nitrat_nitrit + fine_silt  | -58.782 |     1.809 |       6 |        0.338 | 0.032 |            NA |    NA |       NA |         0.016 |          NA |    NA |     0.028 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + nitrat_nitrit + fine_silt       | -58.698 |     1.893 |       6 |        0.382 |    NA |            NA |    NA |       NA |         0.015 |          NA |    NA |     0.025 |               NA |                NA |       NA |
+| JaccardDistance \~ habitat_type + wr + dexter_n                   | -58.602 |     1.989 |       6 |        0.367 |    NA |            NA | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |                NA |    0.018 |
+| JaccardDistance \~ habitat_type + ammonium                        | -58.594 |     1.997 |       6 |        0.389 |    NA |            NA |    NA |    0.009 |            NA |          NA |    NA |        NA |               NA |                NA |       NA |
 
 Table 2.2: Best models
 
@@ -599,22 +581,20 @@ openxlsx::write.xlsx(Fs, "FSVegAbund.xlsx")
 
 </details>
 
-As seen in table <a href="#tab:SummaryVegAbund">2.3</a> there are 16
+As seen in table <a href="#tab:SummaryVegAbund">2.3</a> there are 12
 models within 2 AICc of each other, you can see there how many times a
 variable has been selected
 
 | Variable      | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
 |:--------------|-----------------:|-------------------------:|---------------------------:|
-| Max_VIF       |               16 |                   96.996 |                         NA |
-| habitat_type  |               16 |                    0.454 |                      0.454 |
-| ec            |                7 |                    0.012 |                      0.026 |
-| nitrat_nitrit |                4 |                    0.003 |                      0.014 |
-| oc_beregnet   |                4 |                    0.004 |                      0.019 |
-| wr            |                2 |                    0.002 |                      0.016 |
-| ammonium      |                2 |                    0.001 |                      0.013 |
+| habitat_type  |               12 |                    0.472 |                      0.472 |
+| ec            |                4 |                    0.009 |                      0.025 |
+| nitrat_nitrit |                3 |                    0.003 |                      0.014 |
+| ammonium      |                2 |                    0.002 |                      0.013 |
+| oc_beregnet   |                2 |                    0.003 |                      0.018 |
 | fine_silt     |                2 |                    0.001 |                      0.011 |
-| water_content |                1 |                    0.000 |                      0.010 |
-| shannon_bak   |                1 |                    0.001 |                      0.011 |
+| water_content |                1 |                    0.001 |                      0.010 |
+| wr            |                1 |                    0.001 |                      0.014 |
 
 Table 2.3: Number of selected models were variables are present and
 their Akaike Weighted R squared for the Marginal effect of the terms
@@ -630,24 +610,20 @@ Show table of selected models for vegetation presence absence
 
 </summary>
 
-| Form                                                            |    AICc | DeltaAICc | Max_VIF | habitat_type |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet | fine_silt | shannon_bak |
-|:----------------------------------------------------------------|--------:|----------:|--------:|-------------:|------:|--------------:|------:|---------:|--------------:|------------:|----------:|------------:|
-| BrayDistance \~ habitat_type + ec                               | -75.760 |     0.000 |   6.000 |        0.448 | 0.025 |            NA |    NA |       NA |            NA |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type                                    | -75.690 |     0.070 |   0.000 |        0.538 |    NA |            NA |    NA |       NA |            NA |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + ec + oc_beregnet                 | -75.189 |     0.571 |   6.792 |        0.384 | 0.026 |            NA |    NA |       NA |            NA |       0.019 |        NA |          NA |
-| BrayDistance \~ habitat_type + ec + wr                          | -75.016 |     0.744 |   7.707 |        0.404 | 0.029 |            NA | 0.018 |       NA |            NA |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + oc_beregnet                      | -74.950 |     0.810 |   6.000 |        0.480 |    NA |            NA |    NA |       NA |            NA |       0.018 |        NA |          NA |
-| BrayDistance \~ habitat_type + nitrat_nitrit                    | -74.557 |     1.202 |   6.000 |        0.510 |    NA |            NA |    NA |       NA |         0.015 |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + wr                               | -74.475 |     1.284 |   6.000 |        0.446 |    NA |            NA | 0.014 |       NA |            NA |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + ec + ammonium                    | -74.463 |     1.297 |   6.000 |        0.407 | 0.027 |            NA |    NA |    0.014 |            NA |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + ec + nitrat_nitrit               | -74.461 |     1.298 |   6.000 |        0.445 | 0.024 |            NA |    NA |       NA |         0.014 |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + ec + fine_silt                   | -74.223 |     1.537 |   6.000 |        0.431 | 0.026 |            NA |    NA |       NA |            NA |          NA |     0.012 |          NA |
-| BrayDistance \~ habitat_type + ammonium                         | -74.199 |     1.561 |   6.000 |        0.497 |    NA |            NA |    NA |    0.012 |            NA |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + shannon_bak                      | -74.177 |     1.583 |   8.715 |        0.437 |    NA |            NA |    NA |       NA |            NA |          NA |        NA |       0.011 |
-| BrayDistance \~ habitat_type + fine_silt                        | -74.123 |     1.637 |   6.000 |        0.499 |    NA |            NA |    NA |       NA |            NA |          NA |     0.011 |          NA |
-| BrayDistance \~ habitat_type + water_content                    | -74.022 |     1.737 |   6.000 |        0.475 |    NA |          0.01 |    NA |       NA |            NA |          NA |        NA |          NA |
-| BrayDistance \~ habitat_type + ec + nitrat_nitrit + oc_beregnet | -73.834 |     1.926 |   7.782 |        0.381 | 0.025 |            NA |    NA |       NA |         0.014 |       0.020 |        NA |          NA |
-| BrayDistance \~ habitat_type + nitrat_nitrit + oc_beregnet      | -73.807 |     1.953 |   6.000 |        0.450 |    NA |            NA |    NA |       NA |         0.015 |       0.018 |        NA |          NA |
+| Form                                                       |    AICc | DeltaAICc | Max_VIF | habitat_type |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet | fine_silt |
+|:-----------------------------------------------------------|--------:|----------:|--------:|-------------:|------:|--------------:|------:|---------:|--------------:|------------:|----------:|
+| BrayDistance \~ habitat_type + ec                          | -75.760 |     0.000 |       6 |        0.448 | 0.025 |            NA |    NA |       NA |            NA |          NA |        NA |
+| BrayDistance \~ habitat_type                               | -75.690 |     0.070 |       0 |        0.538 |    NA |            NA |    NA |       NA |            NA |          NA |        NA |
+| BrayDistance \~ habitat_type + oc_beregnet                 | -74.950 |     0.810 |       6 |        0.480 |    NA |            NA |    NA |       NA |            NA |       0.018 |        NA |
+| BrayDistance \~ habitat_type + nitrat_nitrit               | -74.557 |     1.202 |       6 |        0.510 |    NA |            NA |    NA |       NA |         0.015 |          NA |        NA |
+| BrayDistance \~ habitat_type + wr                          | -74.475 |     1.284 |       6 |        0.446 |    NA |            NA | 0.014 |       NA |            NA |          NA |        NA |
+| BrayDistance \~ habitat_type + ec + ammonium               | -74.463 |     1.297 |       6 |        0.407 | 0.027 |            NA |    NA |    0.014 |            NA |          NA |        NA |
+| BrayDistance \~ habitat_type + ec + nitrat_nitrit          | -74.461 |     1.298 |       6 |        0.445 | 0.024 |            NA |    NA |       NA |         0.014 |          NA |        NA |
+| BrayDistance \~ habitat_type + ec + fine_silt              | -74.223 |     1.537 |       6 |        0.431 | 0.026 |            NA |    NA |       NA |            NA |          NA |     0.012 |
+| BrayDistance \~ habitat_type + ammonium                    | -74.199 |     1.561 |       6 |        0.497 |    NA |            NA |    NA |    0.012 |            NA |          NA |        NA |
+| BrayDistance \~ habitat_type + fine_silt                   | -74.123 |     1.637 |       6 |        0.499 |    NA |            NA |    NA |       NA |            NA |          NA |     0.011 |
+| BrayDistance \~ habitat_type + water_content               | -74.022 |     1.737 |       6 |        0.475 |    NA |          0.01 |    NA |       NA |            NA |          NA |        NA |
+| BrayDistance \~ habitat_type + nitrat_nitrit + oc_beregnet | -73.807 |     1.953 |       6 |        0.450 |    NA |            NA |    NA |       NA |         0.015 |       0.018 |        NA |
 
 Table 2.4: Best models for vegetation abundance
 
@@ -896,23 +872,22 @@ openxlsx::write.xlsx(Fs, "FSBacterialAbund.xlsx")
 </details>
 
 As seen in table <a href="#tab:SummaryBacterialAbund">3.1</a> there are
-38 models within 2 AICc of each other, you can see there how many times
+26 models within 2 AICc of each other, you can see there how many times
 a variable has been selected
 
 | Variable          | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
 |:------------------|-----------------:|-------------------------:|---------------------------:|
-| Max_VIF           |               38 |                  247.612 |                         NA |
-| habitat_type      |               38 |                    0.434 |                      0.434 |
-| oc_beregnet       |               16 |                    0.011 |                      0.025 |
-| water_content     |               12 |                    0.007 |                      0.023 |
-| shannon_veg       |                9 |                    0.005 |                      0.021 |
-| coarse_silt_sand  |                6 |                    0.002 |                      0.015 |
-| wr                |                5 |                    0.003 |                      0.021 |
-| ammonium          |                5 |                    0.001 |                      0.013 |
-| fine_silt         |                5 |                    0.001 |                      0.013 |
-| finesilt_and_clay |                5 |                    0.001 |                      0.012 |
-| ec                |                3 |                    0.001 |                      0.015 |
+| habitat_type      |               26 |                    0.456 |                      0.456 |
+| oc_beregnet       |                9 |                    0.010 |                      0.025 |
+| water_content     |                5 |                    0.005 |                      0.022 |
+| ammonium          |                5 |                    0.002 |                      0.013 |
+| shannon_veg       |                5 |                    0.004 |                      0.021 |
+| coarse_silt_sand  |                4 |                    0.002 |                      0.016 |
+| wr                |                3 |                    0.003 |                      0.020 |
 | clay              |                2 |                    0.001 |                      0.012 |
+| fine_silt         |                2 |                    0.001 |                      0.012 |
+| finesilt_and_clay |                2 |                    0.001 |                      0.012 |
+| ec                |                1 |                    0.000 |                      0.015 |
 | dexter_n          |                1 |                    0.000 |                      0.012 |
 
 Table 3.1: Number of selected models were variables are present and
@@ -929,46 +904,34 @@ Show table of selected models for bacterial abundance
 
 </summary>
 
-| Form                                                                           |    AICc | DeltaAICc | Max_VIF | habitat_type |    ec | water_content |    wr | ammonium | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_veg | finesilt_and_clay | dexter_n |
-|:-------------------------------------------------------------------------------|--------:|----------:|--------:|-------------:|------:|--------------:|------:|---------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
-| BrayDistance \~ habitat_type + oc_beregnet                                     | -86.086 |     0.000 |   6.000 |        0.476 |    NA |            NA |    NA |       NA |       0.028 |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + shannon_veg                       | -85.789 |     0.297 |   6.000 |        0.454 |    NA |            NA |    NA |       NA |       0.028 |    NA |        NA |               NA |       0.022 |                NA |       NA |
-| BrayDistance \~ habitat_type                                                   | -85.730 |     0.355 |   0.000 |        0.529 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content                                   | -85.591 |     0.495 |   6.000 |        0.489 |    NA |         0.024 |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + oc_beregnet                     | -85.582 |     0.504 |   6.000 |        0.449 |    NA |         0.020 |    NA |       NA |       0.025 |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + wr                                              | -85.547 |     0.539 |   6.000 |        0.392 |    NA |            NA | 0.023 |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + shannon_veg                                     | -85.331 |     0.755 |   6.000 |        0.511 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |       0.021 |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + wr                              | -85.283 |     0.803 |   8.398 |        0.353 |    NA |         0.022 | 0.022 |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + wr + oc_beregnet                                | -85.149 |     0.937 |   6.000 |        0.359 |    NA |            NA | 0.017 |       NA |       0.021 |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + wr + shannon_veg                                | -85.121 |     0.965 |   6.202 |        0.364 |    NA |            NA | 0.023 |       NA |          NA |    NA |        NA |               NA |       0.021 |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + shannon_veg                     | -85.047 |     1.039 |   6.000 |        0.466 |    NA |         0.022 |    NA |       NA |          NA |    NA |        NA |               NA |       0.020 |                NA |       NA |
-| BrayDistance \~ habitat_type + coarse_silt_sand                                | -84.869 |     1.216 |   6.000 |        0.490 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |            0.017 |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + ec + oc_beregnet                                | -84.719 |     1.367 |   6.792 |        0.289 | 0.013 |            NA |    NA |       NA |       0.026 |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + ammonium                                        | -84.683 |     1.403 |   6.000 |        0.498 |    NA |            NA |    NA |    0.016 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + coarse_silt_sand                | -84.656 |     1.430 |   6.000 |        0.449 |    NA |         0.023 |    NA |       NA |          NA |    NA |        NA |            0.017 |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + ec + water_content                              | -84.649 |     1.437 |   9.213 |        0.302 | 0.017 |         0.026 |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + ec                                              | -84.556 |     1.530 |   6.000 |        0.354 | 0.015 |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + fine_silt                         | -84.527 |     1.559 |   6.000 |        0.416 |    NA |            NA |    NA |       NA |       0.027 |    NA |     0.012 |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + coarse_silt_sand                  | -84.491 |     1.594 |   6.000 |        0.418 |    NA |            NA |    NA |       NA |       0.022 |    NA |        NA |            0.011 |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + finesilt_and_clay                 | -84.491 |     1.594 |   6.000 |        0.418 |    NA |            NA |    NA |       NA |       0.026 |    NA |        NA |               NA |          NA |             0.011 |       NA |
-| BrayDistance \~ habitat_type + water_content + oc_beregnet + fine_silt         | -84.464 |     1.622 |   9.355 |        0.407 |    NA |         0.024 |    NA |       NA |       0.026 |    NA |     0.016 |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + clay                              | -84.448 |     1.638 |   6.000 |        0.431 |    NA |            NA |    NA |       NA |       0.026 | 0.011 |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + coarse_silt_sand + shannon_veg                  | -84.442 |     1.644 |   6.000 |        0.472 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |            0.017 |       0.021 |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + fine_silt                       | -84.367 |     1.719 |   6.303 |        0.420 |    NA |         0.026 |    NA |       NA |          NA |    NA |     0.015 |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + finesilt_and_clay                               | -84.339 |     1.746 |   6.000 |        0.474 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |             0.013 |       NA |
-| BrayDistance \~ habitat_type + clay                                            | -84.328 |     1.757 |   6.000 |        0.487 |    NA |            NA |    NA |       NA |          NA | 0.013 |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + fine_silt                                       | -84.314 |     1.771 |   6.000 |        0.472 |    NA |            NA |    NA |       NA |          NA |    NA |     0.012 |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + dexter_n                                        | -84.266 |     1.820 |   6.000 |        0.517 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.012 |
-| BrayDistance \~ habitat_type + water_content + ammonium                        | -84.265 |     1.820 |   6.000 |        0.476 |    NA |         0.022 |    NA |    0.014 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + finesilt_and_clay               | -84.235 |     1.850 |   6.100 |        0.425 |    NA |         0.024 |    NA |       NA |          NA |    NA |        NA |               NA |          NA |             0.013 |       NA |
-| BrayDistance \~ habitat_type + wr + ammonium                                   | -84.208 |     1.878 |   6.000 |        0.373 |    NA |            NA | 0.021 |    0.014 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + oc_beregnet + coarse_silt_sand  | -84.206 |     1.880 |   9.313 |        0.409 |    NA |         0.023 |    NA |       NA |       0.021 |    NA |        NA |            0.014 |          NA |                NA |       NA |
-| BrayDistance \~ habitat_type + water_content + oc_beregnet + finesilt_and_clay | -84.206 |     1.880 |   9.313 |        0.409 |    NA |         0.023 |    NA |       NA |       0.025 |    NA |        NA |               NA |          NA |             0.014 |       NA |
-| BrayDistance \~ habitat_type + ammonium + shannon_veg                          | -84.175 |     1.911 |   6.000 |        0.471 |    NA |            NA |    NA |    0.015 |          NA |    NA |        NA |               NA |       0.021 |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + fine_silt + shannon_veg           | -84.170 |     1.916 |   8.958 |        0.396 |    NA |            NA |    NA |       NA |       0.028 |    NA |     0.012 |               NA |       0.022 |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + coarse_silt_sand + shannon_veg    | -84.104 |     1.981 |   8.833 |        0.397 |    NA |            NA |    NA |       NA |       0.022 |    NA |        NA |            0.011 |       0.022 |                NA |       NA |
-| BrayDistance \~ habitat_type + oc_beregnet + finesilt_and_clay + shannon_veg   | -84.104 |     1.981 |   8.833 |        0.397 |    NA |            NA |    NA |       NA |       0.027 |    NA |        NA |               NA |       0.022 |             0.011 |       NA |
-| BrayDistance \~ habitat_type + ammonium + oc_beregnet                          | -84.102 |     1.983 |   6.000 |        0.471 |    NA |            NA |    NA |    0.008 |       0.020 |    NA |        NA |               NA |          NA |                NA |       NA |
+| Form                                                            |    AICc | DeltaAICc | Max_VIF | habitat_type |    ec | water_content |    wr | ammonium | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_veg | finesilt_and_clay | dexter_n |
+|:----------------------------------------------------------------|--------:|----------:|--------:|-------------:|------:|--------------:|------:|---------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
+| BrayDistance \~ habitat_type + oc_beregnet                      | -86.086 |     0.000 |       6 |        0.476 |    NA |            NA |    NA |       NA |       0.028 |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + oc_beregnet + shannon_veg        | -85.789 |     0.297 |       6 |        0.454 |    NA |            NA |    NA |       NA |       0.028 |    NA |        NA |               NA |       0.022 |                NA |       NA |
+| BrayDistance \~ habitat_type                                    | -85.730 |     0.355 |       0 |        0.529 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + water_content                    | -85.591 |     0.495 |       6 |        0.489 |    NA |         0.024 |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + water_content + oc_beregnet      | -85.582 |     0.504 |       6 |        0.449 |    NA |         0.020 |    NA |       NA |       0.025 |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + wr                               | -85.547 |     0.539 |       6 |        0.392 |    NA |            NA | 0.023 |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + shannon_veg                      | -85.331 |     0.755 |       6 |        0.511 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |       0.021 |                NA |       NA |
+| BrayDistance \~ habitat_type + wr + oc_beregnet                 | -85.149 |     0.937 |       6 |        0.359 |    NA |            NA | 0.017 |       NA |       0.021 |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + water_content + shannon_veg      | -85.047 |     1.039 |       6 |        0.466 |    NA |         0.022 |    NA |       NA |          NA |    NA |        NA |               NA |       0.020 |                NA |       NA |
+| BrayDistance \~ habitat_type + coarse_silt_sand                 | -84.869 |     1.216 |       6 |        0.490 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |            0.017 |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + ammonium                         | -84.683 |     1.403 |       6 |        0.498 |    NA |            NA |    NA |    0.016 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + water_content + coarse_silt_sand | -84.656 |     1.430 |       6 |        0.449 |    NA |         0.023 |    NA |       NA |          NA |    NA |        NA |            0.017 |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + ec                               | -84.556 |     1.530 |       6 |        0.354 | 0.015 |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + oc_beregnet + fine_silt          | -84.527 |     1.559 |       6 |        0.416 |    NA |            NA |    NA |       NA |       0.027 |    NA |     0.012 |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + oc_beregnet + coarse_silt_sand   | -84.491 |     1.594 |       6 |        0.418 |    NA |            NA |    NA |       NA |       0.022 |    NA |        NA |            0.011 |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + oc_beregnet + finesilt_and_clay  | -84.491 |     1.594 |       6 |        0.418 |    NA |            NA |    NA |       NA |       0.026 |    NA |        NA |               NA |          NA |             0.011 |       NA |
+| BrayDistance \~ habitat_type + oc_beregnet + clay               | -84.448 |     1.638 |       6 |        0.431 |    NA |            NA |    NA |       NA |       0.026 | 0.011 |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + coarse_silt_sand + shannon_veg   | -84.442 |     1.644 |       6 |        0.472 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |            0.017 |       0.021 |                NA |       NA |
+| BrayDistance \~ habitat_type + finesilt_and_clay                | -84.339 |     1.746 |       6 |        0.474 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |             0.013 |       NA |
+| BrayDistance \~ habitat_type + clay                             | -84.328 |     1.757 |       6 |        0.487 |    NA |            NA |    NA |       NA |          NA | 0.013 |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + fine_silt                        | -84.314 |     1.771 |       6 |        0.472 |    NA |            NA |    NA |       NA |          NA |    NA |     0.012 |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + dexter_n                         | -84.266 |     1.820 |       6 |        0.517 |    NA |            NA |    NA |       NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.012 |
+| BrayDistance \~ habitat_type + water_content + ammonium         | -84.265 |     1.820 |       6 |        0.476 |    NA |         0.022 |    NA |    0.014 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + wr + ammonium                    | -84.208 |     1.878 |       6 |        0.373 |    NA |            NA | 0.021 |    0.014 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ habitat_type + ammonium + shannon_veg           | -84.175 |     1.911 |       6 |        0.471 |    NA |            NA |    NA |    0.015 |          NA |    NA |        NA |               NA |       0.021 |                NA |       NA |
+| BrayDistance \~ habitat_type + ammonium + oc_beregnet           | -84.102 |     1.983 |       6 |        0.471 |    NA |            NA |    NA |    0.008 |       0.020 |    NA |        NA |               NA |          NA |                NA |       NA |
 
 Table 3.2: Best models
 
