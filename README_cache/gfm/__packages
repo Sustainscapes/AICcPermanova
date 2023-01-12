@@ -8,3 +8,6 @@ readxl
 foreach
 iterators
 doParallel
+tidyr
+carData
+car

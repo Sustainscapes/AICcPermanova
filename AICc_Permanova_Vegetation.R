@@ -11,6 +11,8 @@ library(readxl)
 library(parallel)
 library(foreach)
 library(doParallel)
+library(car)
+library(tidyr)
 
 METADATAS <- list.files(pattern = "PERMANOVA_VEGETATION_", full.names = T)
 
@@ -59,8 +61,9 @@ for(x in 1:length(METADATAS)){
 
 
 AllForms <- AllForms %>% 
-  urrr::reduce(bind_rows) %>% 
-  dplyr::distinct(Form, AICc, .keep_all = T)
+  purrr::reduce(bind_rows) %>% 
+  dplyr::distinct(Form, AICc, .keep_all = T) |> 
+  dplyr::mutate(Max_VIF = NA)
 
 
 
@@ -76,15 +79,15 @@ AllForms <- AllForms %>%
 
 
 
-NullMod <- data.frame(Form = paste(Dataset, "~ 1", collapse = ""), AICc = NA)
+NullMod <- data.frame(Form = paste(Dataset, "~ 1", collapse = ""), AICc = NA, Max_VIF = NA)
 
 
-Forms <- Forms %>% bind_rows(NullMod)
+Forms <- AllForms %>% bind_rows(NullMod)
 
 cl <- makeCluster(21)
 registerDoParallel(cl)
 
-Fs <- foreach(x = 1:nrow(Forms), .packages = c("vegan", "dplyr", "tidyr", "readxl"), .combine = bind_rows) %dopar% {
+Fs <- foreach(x = 1:nrow(Forms), .packages = c("vegan", "dplyr", "tidyr", "readxl", "car", "stringr", "janitor"), .combine = bind_rows) %dopar% {
   meta.data = read_excel("PERMANOVA_VEGETATION_ clay_silt_sand_OC_and_others_AC_Danielsen.xlsx") %>% 
     janitor::clean_names()
   
@@ -155,12 +158,14 @@ Fs <- foreach(x = 1:nrow(Forms), .packages = c("vegan", "dplyr", "tidyr", "readx
     return(output)   
     
   }
-  Temp <- Formulas[x,]
+  Temp <- Forms[x,]
   Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(Forms$Form[x]), data = Response, by = "terms"))$AICc, silent = T)
+  Response$y <- rnorm(n = nrow(Response))
+  Temp$Max_VIF <- try({car::vif(lm(as.formula(stringr::str_replace_all(Forms$Form[x], "vegetation_data_no_ID", "y")), data = Response)) |> as.data.frame() |> janitor::clean_names() |> dplyr::pull(gvif) |> max()})
   Rs <- broom::tidy(adonis2(as.formula(Forms$Form[x]), data = Response, by = "terms")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("log.txt", append = T)
-    cat(paste("finished for", x, "number of variables", Sys.time(), nrow(Formulas)))
+    cat(paste("finished for", x, "number of variables", Sys.time(), nrow(Forms)))
     cat("\n")
     sink()
   }
