@@ -58,7 +58,8 @@ for(x in 1:length(METADATAS)){
     janitor::clean_names()
   vegetation_data_no_ID = subset(vegetation_data, select = -plot)
   env.data = subset(meta.data, select = -c(order))
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na() |> 
+    dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
   Dataset <- "JaccardDistance"
@@ -146,7 +147,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   
   
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na() |> 
+    dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
   Dataset <- "JaccardDistance"
@@ -275,8 +277,8 @@ Summary2 <- readRDS("FS.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>% 
-  mutate_at(vars("habitat_type":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
-  mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
+  mutate_at(vars("area":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("area":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
@@ -290,7 +292,7 @@ Summary3 <- readRDS("FS.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>%
-  tidyr::pivot_longer("habitat_type":"dexter_n") %>%
+  tidyr::pivot_longer("area":"dexter_n") %>%
   dplyr::filter(!is.na(value)) %>% 
   #group_split(name) %>% 
   group_by(name) %>% 
@@ -342,7 +344,8 @@ for(x in 1:length(METADATAS)){
     janitor::clean_names()
   vegetation_data_no_ID = vegetation_data
   env.data = subset(meta.data, select = -c(order))
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na() |> 
+    dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
   Dataset <- "BrayDistance"
@@ -430,7 +433,8 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
   
   
   
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na() |> 
+    dplyr::select(-habitat_type) 
   
   Vars <- colnames(env.data)
   Dataset <- "BrayDistance"
@@ -560,8 +564,8 @@ Summary2 <- readRDS("FSVegAbund.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>%
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>% 
-  mutate_at(vars("habitat_type":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
-  mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
+  mutate_at(vars("area":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("area":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
@@ -575,7 +579,7 @@ Summary3 <- readRDS("FSVegAbund.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>%
-  tidyr::pivot_longer("habitat_type":"dexter_n") %>%
+  tidyr::pivot_longer("area":"dexter_n") %>%
   dplyr::filter(!is.na(value)) %>% 
   #group_split(name) %>% 
   group_by(name) %>% 
@@ -635,7 +639,8 @@ for(x in 1:length(METADATAS)){
     janitor::clean_names()
 
   env.data = subset(meta.data, select = -c(order))
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na() |> 
+    dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
   Dataset <- "BrayDistance"
@@ -727,7 +732,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   
   
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na()  |> 
+    dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
   Dataset <- "BrayDistance"
@@ -857,8 +863,8 @@ Summary2 <- readRDS("FSBacterialAbund.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>% 
-  mutate_at(vars("habitat_type":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
-  mutate_at(vars("habitat_type":"dexter_n"), ~.x*AICWeight) %>%
+  mutate_at(vars("area":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("area":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
@@ -872,7 +878,7 @@ Summary3 <- readRDS("FSBacterialAbund.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>%
-  tidyr::pivot_longer("habitat_type":"dexter_n") %>%
+  tidyr::pivot_longer("area":"dexter_n") %>%
   dplyr::filter(!is.na(value)) %>% 
   #group_split(name) %>% 
   group_by(name) %>% 
@@ -930,7 +936,8 @@ for(x in 1:length(METADATAS)){
     janitor::clean_names()
 
   env.data = subset(meta.data, select = -c(order))
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na() |> 
+    dplyr::select(-habitat_type) 
   
   Vars <- colnames(env.data)
   Dataset <- "JaccardDistance"
@@ -1023,7 +1030,8 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   
   
-  env.data <- env.data %>% tidyr::drop_na()  
+  env.data <- env.data %>% tidyr::drop_na() |> 
+    dplyr::select(-habitat_type)  
   
   Vars <- colnames(env.data)
   Dataset <- "JaccardDistance"
