@@ -62,6 +62,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   Response = env.data
   
@@ -151,6 +152,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   
   Response = env.data
@@ -203,7 +205,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response, adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -224,7 +226,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllForms$Form[x], "JaccardDistance ", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("log.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
@@ -257,7 +259,7 @@ As seen in table  \@ref(tab:SummaryPlantPA) there are `r readRDS("FS.rds") %>%
 ```{r SummaryPlantPA, echo = F}
 Summary1 <- readRDS("FS.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 6) %>% 
+    dplyr::filter(Max_VIF <= 5) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
@@ -271,14 +273,14 @@ Summary1 <- readRDS("FS.rds") %>%
 
 Summary2 <- readRDS("FS.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 6) %>% 
+  dplyr::filter(Max_VIF <= 10) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>% 
-  mutate_at(vars("area":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
-  mutate_at(vars("area":"dexter_n"), ~.x*AICWeight) %>%
+  mutate_at(vars("p_h_water":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("p_h_water":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
@@ -286,13 +288,13 @@ Summary2 <- readRDS("FS.rds") %>%
 
 Summary3 <- readRDS("FS.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 6) %>% 
+  dplyr::filter(Max_VIF <= 10) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>%
-  tidyr::pivot_longer("area":"dexter_n") %>%
+  tidyr::pivot_longer("p_h_water":"dexter_n") %>%
   dplyr::filter(!is.na(value)) %>% 
   #group_split(name) %>% 
   group_by(name) %>% 
@@ -314,7 +316,7 @@ Now we can see the top models that have a delta AICc within 2 of the best model 
 ```{r BestPLantModels, echo=FALSE}
 Fs <- readRDS("FS.rds")
 Fs %>% 
-  dplyr::filter(Max_VIF <= 6) %>% 
+  dplyr::filter(Max_VIF <= 10) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
@@ -348,6 +350,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   Response = env.data
   
@@ -437,6 +440,7 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
     dplyr::select(-habitat_type) 
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   
   Response = env.data
@@ -489,7 +493,7 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
     
   }
   Temp <- AllFormsVegAbund[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response,adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -510,7 +514,7 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllFormsVegAbund$Form[x], "BrayDistance", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logVegAbund.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllFormsVegAbund)))
@@ -534,7 +538,7 @@ openxlsx::write.xlsx(Fs, "FSVegAbund.xlsx")
 
 As seen in table  \@ref(tab:SummaryVegAbund) there are `r readRDS("FSVegAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 6) %>% 
+    dplyr::filter(Max_VIF <= 10) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
@@ -544,7 +548,7 @@ As seen in table  \@ref(tab:SummaryVegAbund) there are `r readRDS("FSVegAbund.rd
 
 Summary1 <- readRDS("FSVegAbund.rds") %>% 
     dplyr::filter(AICc > -Inf) %>% 
-    dplyr::filter(Max_VIF <= 6) %>% 
+    dplyr::filter(Max_VIF <= 10) %>% 
     mutate(DeltaAICc = AICc - min(AICc)) %>% 
     relocate(DeltaAICc, .after = AICc) %>% 
     dplyr::filter(DeltaAICc <= 2) %>% 
@@ -558,14 +562,14 @@ Summary1 <- readRDS("FSVegAbund.rds") %>%
 
 Summary2 <- readRDS("FSVegAbund.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 6) %>% 
+  dplyr::filter(Max_VIF <= 10) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>%
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>% 
-  mutate_at(vars("area":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
-  mutate_at(vars("area":"dexter_n"), ~.x*AICWeight) %>%
+  mutate_at(vars("p_h_water":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("p_h_water":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
@@ -573,13 +577,13 @@ Summary2 <- readRDS("FSVegAbund.rds") %>%
 
 Summary3 <- readRDS("FSVegAbund.rds") %>% 
   dplyr::filter(AICc > -Inf) %>% 
-  dplyr::filter(Max_VIF <= 6) %>% 
+  dplyr::filter(Max_VIF <= 10) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>%
-  tidyr::pivot_longer("area":"dexter_n") %>%
+  tidyr::pivot_longer("p_h_water":"dexter_n") %>%
   dplyr::filter(!is.na(value)) %>% 
   #group_split(name) %>% 
   group_by(name) %>% 
@@ -601,11 +605,11 @@ Now we can see the top models that have a delta AICc within 2 of the best model 
 ```{r BestVegAbundModels, echo=FALSE}
 Fs <- readRDS("FSVegAbund.rds")
 Fs %>% 
-  dplyr::filter(Max_VIF <= 6) %>% 
+  dplyr::filter(Max_VIF <= 10) %>% 
   mutate(DeltaAICc = AICc - min(AICc)) %>% 
   relocate(DeltaAICc, .after = AICc) %>% 
   dplyr::filter(DeltaAICc <= 2) %>% 
-  dplyr::filter(Max_VIF <= 6) %>% 
+  dplyr::filter(Max_VIF <= 10) %>% 
   select_if(~sum(!is.na(.)) > 0) %>% 
   dplyr::select(-Dataset) %>% 
   knitr::kable(digits = 3, caption = "Best models for vegetation abundance", format.args	= list(big.mark = ','))
@@ -643,6 +647,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   Response = env.data
   
@@ -736,6 +741,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   
   Response = env.data
@@ -788,7 +794,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -809,7 +815,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllForms$Form[x], "BrayDistance", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logBacterialAbund.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
@@ -863,8 +869,8 @@ Summary2 <- readRDS("FSBacterialAbund.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>% 
-  mutate_at(vars("area":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
-  mutate_at(vars("area":"dexter_n"), ~.x*AICWeight) %>%
+  mutate_at(vars("p_h_water":"dexter_n"), ~ifelse(is.na(.x), 0, .x)) %>%
+  mutate_at(vars("p_h_water":"dexter_n"), ~.x*AICWeight) %>%
   summarise_if(is.numeric, sum) %>% 
   dplyr::select(-AICc, -DeltaAICc, -AICWeight, -Model) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Full_Akaike_Adjusted_RSq") %>% 
@@ -878,7 +884,7 @@ Summary3 <- readRDS("FSBacterialAbund.rds") %>%
   dplyr::filter(DeltaAICc <= 2) %>% 
   mutate(AICWeight = exp( -0.5*DeltaAICc)/sum(exp( -0.5*DeltaAICc))) %>% 
   relocate(AICWeight, .after = DeltaAICc) %>%
-  tidyr::pivot_longer("area":"dexter_n") %>%
+  tidyr::pivot_longer("p_h_water":"dexter_n") %>%
   dplyr::filter(!is.na(value)) %>% 
   #group_split(name) %>% 
   group_by(name) %>% 
@@ -940,6 +946,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type) 
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   Response = env.data
   
@@ -1034,6 +1041,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     dplyr::select(-habitat_type)  
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   
   Response = env.data
@@ -1086,7 +1094,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -1107,7 +1115,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllForms$Form[x], "JaccardDistance", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logBacterialPA.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))

@@ -1,4 +1,4 @@
-31/01, 2023
+23/03, 2023
 
 - <a href="#1-aiccpermanova" id="toc-1-aiccpermanova">1 AICcPermanova</a>
 - <a href="#2-vegetation-models" id="toc-2-vegetation-models">2 Vegetation
@@ -92,6 +92,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   Response = env.data
   
@@ -122,9 +123,9 @@ for(x in 1:length(METADATAS)){
   
   Dataset <- "JaccardDistance"
 }
-#> [1] "1 of 3 ready 2023-01-31 14:30:26"
-#> [1] "2 of 3 ready 2023-01-31 14:31:33"
-#> [1] "3 of 3 ready 2023-01-31 14:32:39"
+#> [1] "1 of 3 ready 2023-03-23 11:36:08"
+#> [1] "2 of 3 ready 2023-03-23 11:37:12"
+#> [1] "3 of 3 ready 2023-03-23 11:38:14"
 
 
 AllForms <- AllForms %>% 
@@ -146,7 +147,7 @@ openxlsx::write.xlsx(AllForms, "AllForms.xlsx")
 
 </details>
 
-This generate up to 2,358 models to evaluate, which can be downloaded as
+This generate up to 1,536 models to evaluate, which can be downloaded as
 an excel file
 [here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllForms.xlsx)
 an rds
@@ -196,6 +197,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   
   Response = env.data
@@ -248,7 +250,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response, adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -269,7 +271,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllForms$Form[x], "JaccardDistance ", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("log.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
@@ -292,13 +294,25 @@ openxlsx::write.xlsx(Fs, "FS.xlsx")
 
 </details>
 
-As seen in table <a href="#tab:SummaryPlantPA">2.1</a> there are 1
+As seen in table <a href="#tab:SummaryPlantPA">2.1</a> there are 191
 models within 2 AICc where the max VIF is lower or equal than 6 of each
 other, you can see there how many times a variable has been selected
 
-| Variable | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
-|:---------|-----------------:|-------------------------:|---------------------------:|
-| area     |                1 |                    0.579 |                      0.579 |
+| Variable          | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
+|:------------------|-----------------:|-------------------------:|---------------------------:|
+| p_h\_water        |              121 |                    0.051 |                      0.066 |
+| ec                |              120 |                    0.030 |                      0.050 |
+| water_content     |              108 |                    0.021 |                      0.043 |
+| fine_silt         |               49 |                    0.009 |                      0.035 |
+| wr                |               47 |                    0.006 |                      0.028 |
+| oc_beregnet       |               46 |                    0.007 |                      0.031 |
+| ammonium          |               44 |                    0.005 |                      0.027 |
+| shannon_bak       |               42 |                    0.018 |                      0.041 |
+| finesilt_and_clay |               33 |                    0.006 |                      0.034 |
+| coarse_silt_sand  |               32 |                    0.006 |                      0.031 |
+| clay              |               31 |                    0.004 |                      0.027 |
+| nitrat_nitrit     |               13 |                    0.001 |                      0.018 |
+| dexter_n          |                9 |                    0.001 |                      0.019 |
 
 Table 2.1: Number of selected models were variables are present and
 their Akaike Weighted R squared for the Marginal effect of the terms
@@ -313,9 +327,278 @@ Show table of selected models for vegetation presence absence
 
 </summary>
 
-| Form                    |    AICc | DeltaAICc | Max_VIF |  area |
-|:------------------------|--------:|----------:|--------:|------:|
-| JaccardDistance \~ area | -55.246 |         0 |       0 | 0.579 |
+| Form                                                                                          |    AICc | DeltaAICc | Max_VIF | p_h\_water |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_bak | finesilt_and_clay | dexter_n |
+|:----------------------------------------------------------------------------------------------|--------:|----------:|--------:|-----------:|------:|--------------:|------:|---------:|--------------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
+| JaccardDistance \~ p_h\_water + ec + water_content                                            | -52.326 |     0.000 |   2.269 |      0.056 | 0.045 |         0.048 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + shannon_bak                                              | -52.312 |     0.014 |   5.976 |      0.060 | 0.047 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.048 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + fine_silt + shannon_bak                                  | -52.133 |     0.194 |   6.375 |      0.050 | 0.045 |            NA |    NA |       NA |            NA |          NA |    NA |     0.034 |               NA |       0.039 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + oc_beregnet                              | -52.069 |     0.258 |   3.146 |      0.050 | 0.040 |         0.058 |    NA |       NA |            NA |       0.033 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + fine_silt                                | -52.058 |     0.269 |   2.583 |      0.056 | 0.043 |         0.038 |    NA |       NA |            NA |          NA |    NA |     0.033 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + shannon_bak                                           | -52.055 |     0.272 |   2.143 |         NA | 0.060 |         0.056 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.052 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + fine_silt                                                     | -52.004 |     0.322 |   1.161 |      0.105 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.043 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + fine_silt                                                | -51.996 |     0.330 |   2.470 |      0.062 | 0.037 |            NA |    NA |       NA |            NA |          NA |    NA |     0.043 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + finesilt_and_clay                        | -51.984 |     0.342 |   2.564 |      0.056 | 0.043 |         0.041 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.032 |       NA |
+| JaccardDistance \~ p_h\_water + ec + finesilt_and_clay + shannon_bak                          | -51.941 |     0.385 |   6.351 |      0.051 | 0.045 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.040 |             0.031 |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet                                   | -51.888 |     0.438 |   2.325 |      0.108 |    NA |         0.056 |    NA |       NA |            NA |       0.038 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content                                                 | -51.863 |     0.464 |   1.010 |      0.112 |    NA |         0.041 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + finesilt_and_clay                                             | -51.784 |     0.543 |   1.140 |      0.106 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.039 |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + shannon_bak                                         | -51.772 |     0.554 |   8.770 |      0.065 | 0.046 |            NA | 0.029 |       NA |            NA |          NA |    NA |        NA |               NA |       0.053 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + finesilt_and_clay                                        | -51.741 |     0.585 |   2.405 |      0.062 | 0.037 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.039 |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + fine_silt                       | -51.733 |     0.594 |   2.857 |      0.093 |    NA |         0.048 |    NA |       NA |            NA |       0.038 |    NA |     0.035 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + clay                                     | -51.717 |     0.609 |   2.462 |      0.056 | 0.043 |         0.045 |    NA |       NA |            NA |          NA | 0.028 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr                                       | -51.715 |     0.611 |   4.161 |      0.043 | 0.043 |         0.053 | 0.028 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + fine_silt + shannon_bak                               | -51.709 |     0.617 |   2.463 |         NA | 0.057 |         0.044 |    NA |       NA |            NA |          NA |    NA |     0.032 |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + shannon_bak                                                   | -51.707 |     0.620 |   5.305 |      0.064 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.038 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + fine_silt                                     | -51.702 |     0.624 |   1.706 |      0.089 |    NA |         0.033 |    NA |       NA |            NA |          NA |    NA |     0.035 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water                                                                 | -51.678 |     0.648 |   0.000 |      0.115 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + coarse_silt_sand                         | -51.662 |     0.665 |   2.883 |      0.055 | 0.039 |         0.039 |    NA |       NA |            NA |          NA |    NA |        NA |            0.027 |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + finesilt_and_clay + shannon_bak                       | -51.649 |     0.677 |   2.420 |         NA | 0.058 |         0.047 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.051 |             0.031 |       NA |
+| JaccardDistance \~ p_h\_water + ec                                                            | -51.634 |     0.692 |   1.841 |      0.063 | 0.037 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + fine_silt + shannon_bak                                       | -51.619 |     0.708 |   6.160 |      0.061 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.036 |               NA |       0.031 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + finesilt_and_clay                             | -51.615 |     0.711 |   1.542 |      0.093 |    NA |         0.035 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.033 |       NA |
+| JaccardDistance \~ p_h\_water + ec + clay + shannon_bak                                       | -51.594 |     0.733 |   6.217 |      0.054 | 0.045 |            NA |    NA |       NA |            NA |          NA | 0.026 |        NA |               NA |       0.044 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + shannon_bak                              | -51.592 |     0.735 |   8.200 |      0.030 | 0.049 |         0.026 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.026 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + coarse_silt_sand                | -51.581 |     0.745 |   2.588 |      0.096 |    NA |         0.049 |    NA |       NA |            NA |       0.038 |    NA |        NA |            0.033 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + finesilt_and_clay               | -51.581 |     0.745 |   2.588 |      0.096 |    NA |         0.049 |    NA |       NA |            NA |       0.037 |    NA |        NA |               NA |          NA |             0.033 |       NA |
+| JaccardDistance \~ p_h\_water + ec + coarse_silt_sand                                         | -51.552 |     0.774 |   2.875 |      0.056 | 0.038 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.036 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + coarse_silt_sand + shannon_bak                           | -51.552 |     0.774 |   6.737 |      0.042 | 0.042 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.026 |       0.037 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + ammonium                                 | -51.548 |     0.778 |   2.510 |      0.056 | 0.045 |         0.044 |    NA |    0.025 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + coarse_silt_sand                              | -51.540 |     0.787 |   1.885 |      0.099 |    NA |         0.038 |    NA |       NA |            NA |          NA |    NA |        NA |            0.032 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + coarse_silt_sand                                              | -51.528 |     0.798 |   1.030 |      0.112 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.035 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + fine_silt                                     | -51.492 |     0.834 |   2.551 |      0.059 | 0.038 |            NA |    NA |    0.030 |            NA |          NA |    NA |     0.043 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + finesilt_and_clay + shannon_bak                               | -51.450 |     0.876 |   6.108 |      0.062 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.032 |             0.033 |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + oc_beregnet + fine_silt                  | -51.448 |     0.878 |   3.436 |      0.049 | 0.033 |         0.042 |    NA |       NA |            NA |       0.028 |    NA |     0.028 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + fine_silt                                          | -51.442 |     0.885 |   1.277 |      0.098 |    NA |            NA |    NA |    0.028 |            NA |          NA |    NA |     0.043 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + shannon_bak                                   | -51.438 |     0.889 |   6.496 |      0.049 | 0.047 |            NA |    NA |    0.024 |            NA |          NA |    NA |        NA |               NA |       0.042 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + shannon_bak                                | -51.432 |     0.894 |   8.520 |      0.052 | 0.042 |            NA |    NA |       NA |            NA |       0.024 |    NA |        NA |               NA |       0.048 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + coarse_silt_sand + shannon_bak                        | -51.417 |     0.909 |   2.650 |         NA | 0.054 |         0.040 |    NA |       NA |            NA |          NA |    NA |        NA |            0.028 |       0.051 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + clay + shannon_bak                                    | -51.417 |     0.910 |   2.301 |         NA | 0.059 |         0.052 |    NA |       NA |            NA |          NA | 0.028 |        NA |               NA |       0.052 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr                                                    | -51.372 |     0.954 |   1.310 |         NA | 0.073 |         0.058 | 0.041 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr                                            | -51.339 |     0.987 |   2.381 |      0.072 |    NA |         0.050 | 0.029 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr + fine_silt                           | -51.334 |     0.992 |   4.336 |      0.041 | 0.039 |         0.045 | 0.027 |       NA |            NA |          NA |    NA |     0.032 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + clay                                          | -51.328 |     0.998 |   1.252 |      0.102 |    NA |         0.038 |    NA |       NA |            NA |          NA | 0.029 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + oc_beregnet + shannon_bak                             | -51.320 |     1.006 |   2.671 |         NA | 0.056 |         0.050 |    NA |       NA |            NA |       0.026 |    NA |        NA |               NA |       0.039 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + oc_beregnet + coarse_silt_sand           | -51.316 |     1.010 |   3.292 |      0.048 | 0.033 |         0.045 |    NA |       NA |            NA |       0.032 |    NA |        NA |            0.026 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + oc_beregnet + finesilt_and_clay          | -51.316 |     1.010 |   3.292 |      0.048 | 0.033 |         0.045 |    NA |       NA |            NA |       0.027 |    NA |        NA |               NA |          NA |             0.026 |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + oc_beregnet + shannon_bak                | -51.315 |     1.012 |   9.240 |      0.037 | 0.043 |         0.036 |    NA |       NA |            NA |       0.033 |    NA |        NA |               NA |       0.026 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + fine_silt + shannon_bak                       | -51.309 |     1.017 |   6.796 |      0.043 | 0.045 |            NA |    NA |    0.025 |            NA |          NA |    NA |     0.036 |               NA |       0.035 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + clay                                                          | -51.299 |     1.028 |   1.083 |      0.109 |    NA |            NA |    NA |       NA |            NA |          NA | 0.031 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + clay + coarse_silt_sand                       | -51.285 |     1.041 |   9.834 |      0.101 |    NA |         0.042 |    NA |       NA |            NA |          NA | 0.034 |        NA |            0.037 |          NA |                NA |       NA |
+| JaccardDistance \~ ec + fine_silt + shannon_bak                                               | -51.281 |     1.045 |   2.463 |         NA | 0.056 |            NA |    NA |       NA |            NA |          NA |    NA |     0.044 |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + coarse_silt_sand + shannon_bak                                | -51.279 |     1.047 |   6.685 |      0.061 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.031 |       0.034 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + finesilt_and_clay                             | -51.273 |     1.054 |   2.491 |      0.059 | 0.038 |            NA |    NA |    0.030 |            NA |          NA |    NA |        NA |               NA |          NA |             0.040 |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + finesilt_and_clay                                  | -51.271 |     1.055 |   1.249 |      0.100 |    NA |            NA |    NA |    0.029 |            NA |          NA |    NA |        NA |               NA |          NA |             0.041 |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + clay                            | -51.271 |     1.055 |   2.353 |      0.102 |    NA |         0.051 |    NA |       NA |            NA |       0.037 | 0.028 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + fine_silt + shannon_bak                  | -51.251 |     1.076 |   8.209 |      0.031 | 0.046 |         0.024 |    NA |       NA |            NA |          NA |    NA |     0.032 |               NA |       0.025 |                NA |       NA |
+| JaccardDistance \~ ec + coarse_silt_sand + shannon_bak                                        | -51.241 |     1.085 |   2.606 |         NA | 0.060 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.043 |       0.051 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr + finesilt_and_clay                   | -51.233 |     1.093 |   4.294 |      0.041 | 0.040 |         0.047 | 0.026 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.030 |       NA |
+| JaccardDistance \~ p_h\_water + wr + shannon_bak                                              | -51.230 |     1.097 |   8.286 |      0.075 |    NA |            NA | 0.030 |       NA |            NA |          NA |    NA |        NA |               NA |       0.048 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + dexter_n                                 | -51.222 |     1.105 |   2.280 |      0.056 | 0.044 |         0.049 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.020 |
+| JaccardDistance \~ ec + water_content + oc_beregnet                                           | -51.221 |     1.105 |   1.944 |         NA | 0.097 |         0.056 |    NA |       NA |            NA |       0.039 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + ammonium + shannon_bak                                | -51.213 |     1.114 |   2.433 |         NA | 0.061 |         0.046 |    NA |    0.025 |            NA |          NA |    NA |        NA |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + fine_silt                                | -51.198 |     1.128 |   2.595 |      0.070 |    NA |         0.044 | 0.030 |       NA |            NA |          NA |    NA |     0.035 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + clay                                                     | -51.198 |     1.129 |   2.180 |      0.062 | 0.036 |            NA |    NA |       NA |            NA |          NA | 0.031 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + clay + fine_silt + shannon_bak                           | -51.178 |     1.148 |   6.376 |      0.050 | 0.045 |            NA |    NA |       NA |            NA |          NA | 0.023 |     0.031 |               NA |       0.039 |                NA |       NA |
+| JaccardDistance \~ ec + water_content                                                         | -51.167 |     1.159 |   1.067 |         NA | 0.101 |         0.055 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + dexter_n + shannon_bak                                   | -51.165 |     1.161 |   6.062 |      0.060 | 0.048 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.048 |                NA |    0.020 |
+| JaccardDistance \~ p_h\_water + ec + nitrat_nitrit + shannon_bak                              | -51.154 |     1.173 |   6.142 |      0.057 | 0.044 |            NA |    NA |       NA |         0.020 |          NA |    NA |        NA |               NA |       0.045 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + finesilt_and_clay + shannon_bak          | -51.147 |     1.179 |   8.201 |      0.030 | 0.046 |         0.026 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.025 |             0.031 |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium                                                 | -51.146 |     1.181 |   2.092 |      0.059 | 0.039 |            NA |    NA |    0.030 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + oc_beregnet + clay                       | -51.140 |     1.186 |   3.182 |      0.049 | 0.036 |         0.051 |    NA |       NA |            NA |       0.029 | 0.024 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + shannon_bak                                      | -51.135 |     1.191 |   2.941 |         NA | 0.061 |         0.056 | 0.023 |       NA |            NA |          NA |    NA |        NA |               NA |       0.034 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + finesilt_and_clay + shannon_bak               | -51.135 |     1.192 |   6.774 |      0.043 | 0.044 |            NA |    NA |    0.026 |            NA |          NA |    NA |        NA |               NA |       0.035 |             0.033 |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + shannon_bak                                     | -51.123 |     1.203 |   7.448 |      0.068 |    NA |            NA |    NA |       NA |            NA |       0.028 |    NA |        NA |               NA |       0.044 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + fine_silt + shannon_bak                    | -51.116 |     1.211 |   9.134 |      0.042 | 0.039 |            NA |    NA |       NA |            NA |       0.022 |    NA |     0.033 |               NA |       0.038 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + clay + fine_silt                                              | -51.107 |     1.219 |   3.129 |      0.105 |    NA |            NA |    NA |       NA |            NA |          NA | 0.023 |     0.035 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + fine_silt                                  | -51.104 |     1.222 |   3.277 |      0.048 | 0.039 |            NA |    NA |       NA |            NA |       0.024 |    NA |     0.043 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + clay + shannon_bak                                            | -51.099 |     1.227 |   5.841 |      0.063 |    NA |            NA |    NA |       NA |            NA |          NA | 0.028 |        NA |               NA |       0.035 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + clay + coarse_silt_sand                                  | -51.097 |     1.229 |   6.013 |      0.053 | 0.040 |            NA |    NA |       NA |            NA |          NA | 0.031 |        NA |            0.036 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + coarse_silt_sand                              | -51.094 |     1.232 |   2.880 |      0.055 | 0.038 |            NA |    NA |    0.031 |            NA |          NA |    NA |        NA |            0.037 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium                                                      | -51.089 |     1.237 |   1.046 |      0.111 |    NA |            NA |    NA |    0.028 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + fine_silt                                        | -51.088 |     1.239 |   2.237 |         NA | 0.068 |         0.046 | 0.041 |       NA |            NA |          NA |    NA |     0.033 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + ammonium                                      | -51.077 |     1.249 |   2.295 |      0.112 |    NA |         0.038 |    NA |    0.025 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + coarse_silt_sand                                   | -51.071 |     1.255 |   1.287 |      0.104 |    NA |            NA |    NA |    0.030 |            NA |          NA |    NA |        NA |            0.038 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + finesilt_and_clay                        | -51.067 |     1.259 |   2.515 |      0.070 |    NA |         0.045 | 0.029 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.034 |       NA |
+| JaccardDistance \~ p_h\_water + ec + clay + fine_silt                                         | -51.064 |     1.262 |   3.545 |      0.062 | 0.037 |            NA |    NA |       NA |            NA |          NA | 0.023 |     0.036 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr + oc_beregnet                         | -51.056 |     1.270 |   4.304 |      0.044 | 0.040 |         0.052 | 0.023 |       NA |            NA |       0.028 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + fine_silt                                       | -51.049 |     1.277 |   1.491 |      0.093 |    NA |            NA |    NA |       NA |            NA |       0.022 |    NA |     0.043 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + finesilt_and_clay + shannon_bak                                       | -51.045 |     1.281 |   2.414 |         NA | 0.055 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.051 |             0.040 |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + fine_silt + shannon_bak                         | -51.037 |     1.289 |   7.510 |      0.066 |    NA |            NA |    NA |       NA |            NA |       0.029 |    NA |     0.036 |               NA |       0.038 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + ammonium + shannon_bak                              | -51.026 |     1.301 |   9.256 |      0.058 | 0.046 |            NA | 0.031 |    0.026 |            NA |          NA |    NA |        NA |               NA |       0.046 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + fine_silt + shannon_bak                                  | -51.021 |     1.305 |   8.891 |      0.070 |    NA |            NA | 0.028 |       NA |            NA |          NA |    NA |     0.035 |               NA |       0.041 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + nitrat_nitrit                            | -51.008 |     1.318 |   2.452 |      0.055 | 0.043 |         0.042 |    NA |       NA |         0.017 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + coarse_silt_sand                         | -51.006 |     1.320 |   2.393 |      0.069 |    NA |         0.045 | 0.029 |       NA |            NA |          NA |    NA |        NA |            0.033 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + clay + coarse_silt_sand + shannon_bak                    | -50.993 |     1.333 |   7.807 |      0.039 | 0.041 |            NA |    NA |       NA |            NA |          NA | 0.029 |        NA |            0.029 |       0.036 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + finesilt_and_clay                                | -50.993 |     1.333 |   1.912 |         NA | 0.069 |         0.049 | 0.041 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.032 |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + ammonium + oc_beregnet                   | -50.984 |     1.343 |   3.146 |      0.050 | 0.039 |         0.054 |    NA |    0.021 |            NA |       0.029 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr + clay                                | -50.979 |     1.347 |   4.223 |      0.042 | 0.041 |         0.051 | 0.027 |       NA |            NA |          NA | 0.027 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + clay + coarse_silt_sand                                       | -50.979 |     1.347 |   4.325 |      0.108 |    NA |            NA |    NA |       NA |            NA |          NA | 0.029 |        NA |            0.033 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr + coarse_silt_sand                    | -50.975 |     1.351 |   4.403 |      0.041 | 0.037 |         0.045 | 0.027 |       NA |            NA |          NA |    NA |        NA |            0.027 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + clay + fine_silt                         | -50.971 |     1.355 |   4.281 |      0.055 | 0.043 |         0.036 |    NA |       NA |            NA |          NA | 0.021 |     0.027 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + shannon_bak                     | -50.961 |     1.365 |   8.086 |      0.051 |    NA |         0.035 |    NA |       NA |            NA |       0.039 |    NA |        NA |               NA |       0.023 |                NA |       NA |
+| JaccardDistance \~ ec + ammonium + fine_silt + shannon_bak                                    | -50.957 |     1.370 |   2.469 |         NA | 0.057 |            NA |    NA |    0.033 |            NA |          NA |    NA |     0.042 |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ ec + shannon_bak                                                           | -50.932 |     1.394 |   2.052 |         NA | 0.052 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.052 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + dexter_n + shannon_bak                                | -50.921 |     1.405 |   2.175 |         NA | 0.060 |         0.056 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.052 |                NA |    0.020 |
+| JaccardDistance \~ p_h\_water + ec + wr + oc_beregnet + shannon_bak                           | -50.914 |     1.412 |   9.981 |      0.058 | 0.042 |            NA | 0.030 |       NA |            NA |       0.025 |    NA |        NA |               NA |       0.050 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + nitrat_nitrit                                                 | -50.899 |     1.427 |   1.157 |      0.102 |    NA |            NA |    NA |       NA |         0.025 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + coarse_silt_sand + shannon_bak                | -50.895 |     1.431 |   7.332 |      0.038 | 0.042 |            NA |    NA |    0.028 |            NA |          NA |    NA |        NA |            0.030 |       0.035 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + oc_beregnet                              | -50.888 |     1.439 |   3.225 |      0.072 |    NA |         0.050 | 0.022 |       NA |            NA |       0.031 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + coarse_silt_sand + shannon_bak             | -50.885 |     1.441 |   9.130 |      0.042 | 0.038 |            NA |    NA |       NA |            NA |       0.028 |    NA |        NA |            0.030 |       0.039 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + finesilt_and_clay + shannon_bak            | -50.885 |     1.441 |   9.130 |      0.042 | 0.038 |            NA |    NA |       NA |            NA |       0.022 |    NA |        NA |               NA |       0.039 |             0.030 |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + coarse_silt_sand + shannon_bak                  | -50.877 |     1.449 |   7.522 |      0.066 |    NA |            NA |    NA |       NA |            NA |       0.032 |    NA |        NA |            0.034 |       0.038 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + finesilt_and_clay + shannon_bak                 | -50.877 |     1.449 |   7.522 |      0.066 |    NA |            NA |    NA |       NA |            NA |       0.029 |    NA |        NA |               NA |       0.038 |             0.034 |       NA |
+| JaccardDistance \~ ec + clay + coarse_silt_sand + shannon_bak                                 | -50.877 |     1.449 |   4.817 |         NA | 0.063 |            NA |    NA |       NA |            NA |          NA | 0.032 |        NA |            0.044 |       0.050 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + ammonium + oc_beregnet                        | -50.869 |     1.458 |   2.874 |      0.109 |    NA |         0.053 |    NA |    0.022 |            NA |       0.035 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + coarse_silt_sand                                | -50.867 |     1.460 |   1.685 |      0.094 |    NA |            NA |    NA |       NA |            NA |       0.027 |    NA |        NA |            0.040 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + finesilt_and_clay                               | -50.867 |     1.460 |   1.453 |      0.094 |    NA |            NA |    NA |       NA |            NA |       0.023 |    NA |        NA |               NA |          NA |             0.040 |       NA |
+| JaccardDistance \~ p_h\_water + wr + finesilt_and_clay + shannon_bak                          | -50.861 |     1.465 |   8.812 |      0.071 |    NA |            NA | 0.029 |       NA |            NA |          NA |    NA |        NA |               NA |       0.042 |             0.032 |       NA |
+| JaccardDistance \~ p_h\_water + water_content + shannon_bak                                   | -50.858 |     1.468 |   7.726 |      0.042 |    NA |         0.024 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.022 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + clay + shannon_bak                       | -50.858 |     1.469 |   8.234 |      0.029 | 0.047 |         0.027 |    NA |       NA |            NA |          NA | 0.027 |        NA |               NA |       0.025 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + ammonium + finesilt_and_clay             | -50.857 |     1.469 |   2.941 |      0.057 | 0.043 |         0.032 |    NA |    0.021 |            NA |          NA |    NA |        NA |               NA |          NA |             0.027 |       NA |
+| JaccardDistance \~ ec + water_content + fine_silt                                             | -50.855 |     1.471 |   1.908 |         NA | 0.076 |         0.044 |    NA |       NA |            NA |          NA |    NA |     0.033 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + ammonium + coarse_silt_sand + shannon_bak                             | -50.855 |     1.471 |   2.619 |         NA | 0.059 |            NA |    NA |    0.032 |            NA |          NA |    NA |        NA |            0.040 |       0.052 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + clay + shannon_bak                                  | -50.854 |     1.472 |   9.528 |      0.058 | 0.043 |            NA | 0.027 |       NA |            NA |          NA | 0.024 |        NA |               NA |       0.049 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + coarse_silt_sand + shannon_bak           | -50.842 |     1.484 |   8.345 |      0.029 | 0.042 |         0.027 |    NA |       NA |            NA |          NA |    NA |        NA |            0.027 |       0.025 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + fine_silt + coarse_silt_sand                  | -50.840 |     1.486 |   8.749 |      0.088 |    NA |         0.041 |    NA |       NA |            NA |          NA |    NA |     0.027 |            0.024 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + fine_silt + shannon_bak                            | -50.832 |     1.494 |   6.658 |      0.056 |    NA |            NA |    NA |    0.026 |            NA |          NA |    NA |     0.038 |               NA |       0.028 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + coarse_silt_sand                           | -50.830 |     1.497 |   3.215 |      0.048 | 0.037 |            NA |    NA |       NA |            NA |       0.027 |    NA |        NA |            0.039 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + finesilt_and_clay                          | -50.830 |     1.497 |   3.215 |      0.048 | 0.037 |            NA |    NA |       NA |            NA |       0.024 |    NA |        NA |               NA |          NA |             0.039 |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + fine_silt                                           | -50.827 |     1.499 |   4.327 |      0.042 | 0.038 |            NA | 0.020 |       NA |            NA |          NA |    NA |     0.039 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + oc_beregnet + fine_silt + shannon_bak                                 | -50.825 |     1.501 |   2.695 |         NA | 0.063 |            NA |    NA |       NA |            NA |       0.031 |    NA |     0.043 |               NA |       0.044 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + fine_silt + shannon_bak         | -50.824 |     1.502 |   8.118 |      0.050 |    NA |         0.035 |    NA |       NA |            NA |       0.040 |    NA |     0.036 |               NA |       0.024 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + fine_silt + coarse_silt_sand             | -50.824 |     1.502 |   9.977 |      0.049 | 0.038 |         0.041 |    NA |       NA |            NA |          NA |    NA |     0.025 |            0.019 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + shannon_bak                                        | -50.823 |     1.503 |   6.303 |      0.057 |    NA |            NA |    NA |    0.024 |            NA |          NA |    NA |        NA |               NA |       0.034 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + fine_silt + shannon_bak                          | -50.816 |     1.510 |   2.968 |         NA | 0.058 |         0.044 | 0.024 |       NA |            NA |          NA |    NA |     0.033 |               NA |       0.034 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + ammonium + clay                          | -50.810 |     1.517 |   2.618 |      0.056 | 0.044 |         0.039 |    NA |    0.024 |            NA |          NA | 0.027 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + ammonium + fine_silt                     | -50.808 |     1.519 |   3.233 |      0.056 | 0.042 |         0.028 |    NA |    0.019 |            NA |          NA |    NA |     0.027 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + clay                                               | -50.806 |     1.521 |   1.166 |      0.104 |    NA |            NA |    NA |    0.030 |            NA |          NA | 0.033 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + fine_silt                                                | -50.797 |     1.529 |   2.324 |      0.070 |    NA |            NA | 0.018 |       NA |            NA |          NA |    NA |     0.041 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + dexter_n                                      | -50.790 |     1.536 |   1.041 |      0.112 |    NA |         0.042 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.021 |
+| JaccardDistance \~ p_h\_water + clay + coarse_silt_sand + shannon_bak                         | -50.789 |     1.537 |   6.973 |      0.062 |    NA |            NA |    NA |       NA |            NA |          NA | 0.030 |        NA |            0.033 |       0.035 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + finesilt_and_clay                                     | -50.777 |     1.550 |   1.726 |         NA | 0.080 |         0.047 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.032 |       NA |
+| JaccardDistance \~ p_h\_water + wr + coarse_silt_sand + shannon_bak                           | -50.771 |     1.555 |   9.033 |      0.070 |    NA |            NA | 0.030 |       NA |            NA |          NA |    NA |        NA |            0.031 |       0.041 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + clay + shannon_bak                            | -50.768 |     1.558 |   6.666 |      0.045 | 0.045 |            NA |    NA |    0.025 |            NA |          NA | 0.028 |        NA |               NA |       0.038 |                NA |       NA |
+| JaccardDistance \~ ec + ammonium + finesilt_and_clay + shannon_bak                            | -50.765 |     1.561 |   2.422 |         NA | 0.057 |            NA |    NA |    0.034 |            NA |          NA |    NA |        NA |               NA |       0.051 |             0.039 |       NA |
+| JaccardDistance \~ p_h\_water + ec + fine_silt + dexter_n + shannon_bak                       | -50.764 |     1.563 |   6.386 |      0.049 | 0.045 |            NA |    NA |       NA |            NA |          NA |    NA |     0.032 |               NA |       0.040 |                NA |    0.017 |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet                                              | -50.763 |     1.563 |   3.120 |      0.049 | 0.039 |            NA |    NA |       NA |            NA |       0.024 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + coarse_silt_sand                                 | -50.757 |     1.570 |   2.367 |         NA | 0.065 |         0.045 | 0.041 |       NA |            NA |          NA |    NA |        NA |            0.028 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + clay                                     | -50.748 |     1.578 |   2.420 |      0.071 |    NA |         0.048 | 0.029 |       NA |            NA |          NA | 0.029 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr                                                       | -50.747 |     1.579 |   4.030 |      0.048 | 0.041 |            NA | 0.024 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + clay                                          | -50.745 |     1.581 |   2.292 |      0.059 | 0.037 |            NA |    NA |    0.031 |            NA |          NA | 0.032 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + oc_beregnet + fine_silt                  | -50.744 |     1.582 |   3.349 |      0.068 |    NA |         0.047 | 0.023 |       NA |            NA |       0.031 |    NA |     0.036 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr + ammonium                            | -50.742 |     1.584 |   4.187 |      0.042 | 0.043 |         0.042 | 0.026 |    0.023 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + clay + fine_silt                | -50.740 |     1.587 |   4.362 |      0.092 |    NA |         0.048 |    NA |       NA |            NA |       0.039 | 0.023 |     0.030 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + nitrat_nitrit + shannon_bak                                   | -50.736 |     1.590 |   5.752 |      0.064 |    NA |            NA |    NA |       NA |         0.022 |          NA |    NA |        NA |               NA |       0.035 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet                                                   | -50.734 |     1.592 |   1.211 |      0.103 |    NA |            NA |    NA |       NA |            NA |       0.022 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + fine_silt + dexter_n                                          | -50.729 |     1.597 |   1.219 |      0.105 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.041 |               NA |          NA |                NA |    0.017 |
+| JaccardDistance \~ ec + water_content + oc_beregnet + fine_silt + shannon_bak                 | -50.729 |     1.597 |   3.225 |         NA | 0.049 |         0.036 |    NA |       NA |            NA |       0.023 |    NA |     0.029 |               NA |       0.039 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + nitrat_nitrit + shannon_bak                           | -50.728 |     1.599 |   2.343 |         NA | 0.056 |         0.050 |    NA |       NA |         0.017 |          NA |    NA |        NA |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + finesilt_and_clay + shannon_bak                  | -50.724 |     1.602 |   2.953 |         NA | 0.058 |         0.047 | 0.024 |       NA |            NA |          NA |    NA |        NA |               NA |       0.034 |             0.032 |       NA |
+| JaccardDistance \~ ec + water_content + wr + clay                                             | -50.721 |     1.605 |   1.469 |         NA | 0.071 |         0.054 | 0.041 |       NA |            NA |          NA | 0.028 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + nitrat_nitrit                                            | -50.714 |     1.612 |   2.212 |      0.063 | 0.035 |            NA |    NA |       NA |         0.023 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + ammonium + shannon_bak                                                | -50.695 |     1.631 |   2.092 |         NA | 0.055 |            NA |    NA |    0.034 |            NA |          NA |    NA |        NA |               NA |       0.052 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + nitrat_nitrit                                 | -50.691 |     1.635 |   1.424 |      0.090 |    NA |         0.035 |    NA |       NA |         0.019 |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + nitrat_nitrit + oc_beregnet                   | -50.689 |     1.637 |   2.339 |      0.091 |    NA |         0.052 |    NA |       NA |         0.019 |       0.038 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + finesilt_and_clay + shannon_bak                    | -50.689 |     1.638 |   6.617 |      0.056 |    NA |            NA |    NA |    0.026 |            NA |          NA |    NA |        NA |               NA |       0.029 |             0.036 |       NA |
+| JaccardDistance \~ ec + water_content + oc_beregnet + fine_silt                               | -50.685 |     1.641 |   2.921 |         NA | 0.077 |         0.042 |    NA |       NA |            NA |       0.035 |    NA |     0.030 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + clay + fine_silt + shannon_bak                                | -50.682 |     1.645 |   6.161 |      0.062 |    NA |            NA |    NA |       NA |            NA |          NA | 0.023 |     0.031 |               NA |       0.031 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + fine_silt + coarse_silt_sand                                  | -50.667 |     1.659 |   7.633 |      0.094 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.024 |            0.016 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + fine_silt + coarse_silt_sand + shannon_bak               | -50.663 |     1.663 |   8.656 |      0.044 | 0.040 |            NA |    NA |       NA |            NA |          NA |    NA |     0.025 |            0.016 |       0.039 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + ammonium + shannon_bak                   | -50.659 |     1.667 |   8.214 |      0.030 | 0.049 |         0.026 |    NA |    0.024 |            NA |          NA |    NA |        NA |               NA |       0.025 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + coarse_silt_sand + shannon_bak  | -50.659 |     1.668 |   8.092 |      0.051 |    NA |         0.035 |    NA |       NA |            NA |       0.039 |    NA |        NA |            0.033 |       0.024 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + oc_beregnet + finesilt_and_clay + shannon_bak | -50.659 |     1.668 |   8.092 |      0.051 |    NA |         0.035 |    NA |       NA |            NA |       0.039 |    NA |        NA |               NA |       0.024 |             0.033 |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + ammonium + coarse_silt_sand              | -50.657 |     1.669 |   3.356 |      0.055 | 0.039 |         0.031 |    NA |    0.023 |            NA |          NA |    NA |        NA |            0.025 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + fine_silt + shannon_bak                       | -50.652 |     1.674 |   7.779 |      0.041 |    NA |         0.023 |    NA |       NA |            NA |          NA |    NA |     0.035 |               NA |       0.022 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + nitrat_nitrit + oc_beregnet              | -50.651 |     1.675 |   3.146 |      0.050 | 0.037 |         0.051 |    NA |       NA |         0.017 |       0.033 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ water_content + shannon_bak                                                | -50.647 |     1.679 |   1.023 |         NA |    NA |         0.047 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.092 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + fine_silt + dexter_n                                     | -50.644 |     1.683 |   2.668 |      0.061 | 0.037 |            NA |    NA |       NA |            NA |          NA |    NA |     0.040 |               NA |          NA |                NA |    0.017 |
+| JaccardDistance \~ p_h\_water + water_content + clay + fine_silt                              | -50.642 |     1.684 |   4.079 |      0.088 |    NA |         0.031 |    NA |       NA |            NA |          NA | 0.021 |     0.027 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + clay + fine_silt + shannon_bak                        | -50.642 |     1.684 |   4.230 |         NA | 0.057 |         0.043 |    NA |       NA |            NA |          NA | 0.022 |     0.026 |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + coarse_silt_sand + shannon_bak                     | -50.637 |     1.690 |   6.933 |      0.056 |    NA |            NA |    NA |    0.028 |            NA |          NA |    NA |        NA |            0.035 |       0.031 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + oc_beregnet + coarse_silt_sand + shannon_bak          | -50.627 |     1.699 |   2.860 |         NA | 0.050 |         0.038 |    NA |       NA |            NA |       0.026 |    NA |        NA |            0.027 |       0.039 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + oc_beregnet + finesilt_and_clay + shannon_bak         | -50.627 |     1.699 |   2.860 |         NA | 0.050 |         0.038 |    NA |       NA |            NA |       0.023 |    NA |        NA |               NA |       0.039 |             0.027 |       NA |
+| JaccardDistance \~ p_h\_water + ec + nitrat_nitrit + fine_silt + shannon_bak                  | -50.619 |     1.707 |   6.403 |      0.050 | 0.045 |            NA |    NA |       NA |         0.015 |          NA |    NA |     0.030 |               NA |       0.039 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + oc_beregnet                                      | -50.618 |     1.708 |   3.326 |         NA | 0.068 |         0.052 | 0.029 |       NA |            NA |       0.026 |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + oc_beregnet + shannon_bak                                | -50.608 |     1.718 |   8.811 |      0.073 |    NA |            NA | 0.030 |       NA |            NA |       0.028 |    NA |        NA |               NA |       0.046 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + nitrat_nitrit + fine_silt                                     | -50.599 |     1.727 |   1.645 |      0.101 |    NA |            NA |    NA |       NA |         0.015 |          NA |    NA |     0.033 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + oc_beregnet + coarse_silt_sand + shannon_bak                          | -50.597 |     1.729 |   2.649 |         NA | 0.062 |            NA |    NA |       NA |            NA |       0.028 |    NA |        NA |            0.039 |       0.044 |                NA |       NA |
+| JaccardDistance \~ ec + oc_beregnet + finesilt_and_clay + shannon_bak                         | -50.597 |     1.729 |   2.649 |         NA | 0.062 |            NA |    NA |       NA |            NA |       0.031 |    NA |        NA |               NA |       0.044 |             0.039 |       NA |
+| JaccardDistance \~ ec + coarse_silt_sand + finesilt_and_clay + shannon_bak                    | -50.597 |     1.729 |   9.551 |         NA | 0.062 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.031 |       0.044 |             0.028 |       NA |
+| JaccardDistance \~ p_h\_water + wr                                                            | -50.596 |     1.731 |   2.230 |      0.068 |    NA |            NA | 0.020 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + finesilt_and_clay                                        | -50.595 |     1.731 |   2.323 |      0.070 |    NA |            NA | 0.019 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.038 |       NA |
+| JaccardDistance \~ p_h\_water + ec + fine_silt + coarse_silt_sand                             | -50.594 |     1.732 |   8.073 |      0.050 | 0.037 |            NA |    NA |       NA |            NA |          NA |    NA |     0.023 |            0.016 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + clay + coarse_silt_sand                  | -50.589 |     1.737 |   9.942 |      0.068 |    NA |         0.046 | 0.027 |       NA |            NA |          NA | 0.032 |        NA |            0.036 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + finesilt_and_clay                                   | -50.589 |     1.737 |   4.266 |      0.043 | 0.038 |            NA | 0.020 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |             0.036 |       NA |
+| JaccardDistance \~ ec + water_content + oc_beregnet + coarse_silt_sand                        | -50.583 |     1.743 |   2.593 |         NA | 0.081 |         0.044 |    NA |       NA |            NA |       0.039 |    NA |        NA |            0.028 |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + oc_beregnet + finesilt_and_clay                       | -50.583 |     1.743 |   2.593 |         NA | 0.081 |         0.044 |    NA |       NA |            NA |       0.035 |    NA |        NA |               NA |          NA |             0.028 |       NA |
+| JaccardDistance \~ p_h\_water + dexter_n                                                      | -50.581 |     1.745 |   1.023 |      0.114 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.019 |
+| JaccardDistance \~ p_h\_water + water_content + ammonium + coarse_silt_sand                   | -50.578 |     1.748 |   3.352 |      0.101 |    NA |         0.030 |    NA |    0.023 |            NA |          NA |    NA |        NA |            0.030 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + ammonium + fine_silt                                | -50.577 |     1.749 |   4.327 |      0.042 | 0.038 |            NA | 0.024 |    0.034 |            NA |          NA |    NA |     0.039 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + wr + fine_silt                                                        | -50.577 |     1.750 |   1.615 |         NA | 0.066 |            NA | 0.040 |       NA |            NA |          NA |    NA |     0.045 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + oc_beregnet + coarse_silt_sand           | -50.575 |     1.751 |   3.302 |      0.069 |    NA |         0.046 | 0.023 |       NA |            NA |       0.031 |    NA |        NA |            0.033 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + oc_beregnet + finesilt_and_clay          | -50.575 |     1.751 |   3.302 |      0.069 |    NA |         0.046 | 0.023 |       NA |            NA |       0.031 |    NA |        NA |               NA |          NA |             0.033 |       NA |
+| JaccardDistance \~ p_h\_water + water_content + coarse_silt_sand + shannon_bak                | -50.567 |     1.759 |   7.852 |      0.042 |    NA |         0.027 |    NA |       NA |            NA |          NA |    NA |        NA |            0.034 |       0.023 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + nitrat_nitrit + finesilt_and_clay + shannon_bak          | -50.565 |     1.762 |   6.407 |      0.051 | 0.044 |            NA |    NA |       NA |         0.017 |          NA |    NA |        NA |               NA |       0.039 |             0.029 |       NA |
+| JaccardDistance \~ p_h\_water + water_content + finesilt_and_clay + shannon_bak               | -50.558 |     1.768 |   7.817 |      0.041 |    NA |         0.024 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.021 |             0.033 |       NA |
+| JaccardDistance \~ p_h\_water + wr + coarse_silt_sand                                         | -50.556 |     1.770 |   2.326 |      0.070 |    NA |            NA | 0.022 |       NA |            NA |          NA |    NA |        NA |            0.038 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + nitrat_nitrit + fine_silt                                | -50.555 |     1.771 |   2.560 |      0.062 | 0.037 |            NA |    NA |       NA |         0.016 |          NA |    NA |     0.036 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + ammonium + fine_silt                                     | -50.546 |     1.780 |   2.573 |      0.070 |    NA |            NA | 0.024 |    0.034 |            NA |          NA |    NA |     0.041 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + coarse_silt_sand                                      | -50.539 |     1.787 |   2.358 |         NA | 0.083 |         0.040 |    NA |       NA |            NA |          NA |    NA |        NA |            0.028 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + clay + shannon_bak                                       | -50.539 |     1.787 |   8.592 |      0.072 |    NA |            NA | 0.029 |       NA |            NA |          NA | 0.027 |        NA |               NA |       0.044 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + nitrat_nitrit + finesilt_and_clay                             | -50.538 |     1.788 |   1.461 |      0.101 |    NA |            NA |    NA |       NA |         0.018 |          NA |    NA |        NA |               NA |          NA |             0.032 |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + dexter_n + shannon_bak                              | -50.536 |     1.790 |   8.933 |      0.065 | 0.046 |            NA | 0.028 |       NA |            NA |          NA |    NA |        NA |               NA |       0.054 |                NA |    0.019 |
+| JaccardDistance \~ p_h\_water + fine_silt + coarse_silt_sand + shannon_bak                    | -50.535 |     1.791 |   7.768 |      0.065 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.026 |            0.021 |       0.036 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + dexter_n + shannon_bak                                        | -50.535 |     1.792 |   5.332 |      0.064 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.038 |                NA |    0.019 |
+| JaccardDistance \~ p_h\_water + water_content + ammonium + fine_silt                          | -50.532 |     1.794 |   3.188 |      0.091 |    NA |         0.024 |    NA |    0.020 |            NA |          NA |    NA |     0.030 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + clay                                                  | -50.530 |     1.796 |   1.357 |         NA | 0.089 |         0.052 |    NA |       NA |            NA |          NA | 0.028 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + ammonium + finesilt_and_clay                  | -50.530 |     1.796 |   2.857 |      0.095 |    NA |         0.026 |    NA |    0.021 |            NA |          NA |    NA |        NA |               NA |          NA |             0.030 |       NA |
+| JaccardDistance \~ p_h\_water + ec + ammonium + clay + fine_silt                              | -50.529 |     1.798 |   3.578 |      0.059 | 0.038 |            NA |    NA |    0.030 |            NA |          NA | 0.023 |     0.035 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + oc_beregnet + shannon_bak                                             | -50.528 |     1.798 |   2.406 |         NA | 0.059 |            NA |    NA |       NA |            NA |       0.032 |    NA |        NA |               NA |       0.045 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + oc_beregnet + clay + shannon_bak                         | -50.527 |     1.800 |   8.948 |      0.045 | 0.038 |            NA |    NA |       NA |            NA |       0.022 | 0.024 |        NA |               NA |       0.042 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + dexter_n                                                 | -50.524 |     1.802 |   1.910 |      0.063 | 0.037 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.020 |
+| JaccardDistance \~ p_h\_water + ec + wr + coarse_silt_sand                                    | -50.520 |     1.806 |   4.403 |      0.041 | 0.038 |            NA | 0.022 |       NA |            NA |          NA |    NA |        NA |            0.035 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + clay + shannon_bak                              | -50.514 |     1.812 |   7.519 |      0.067 |    NA |            NA |    NA |       NA |            NA |       0.029 | 0.029 |        NA |               NA |       0.040 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + nitrat_nitrit + finesilt_and_clay        | -50.513 |     1.813 |   2.660 |      0.055 | 0.042 |         0.039 |    NA |       NA |         0.016 |          NA |    NA |        NA |               NA |          NA |             0.031 |       NA |
+| JaccardDistance \~ ec + clay + shannon_bak                                                    | -50.512 |     1.814 |   2.263 |         NA | 0.053 |            NA |    NA |       NA |            NA |          NA | 0.031 |        NA |               NA |       0.052 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ammonium + clay + fine_silt                                   | -50.509 |     1.818 |   3.215 |      0.098 |    NA |            NA |    NA |    0.029 |            NA |          NA | 0.023 |     0.033 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + nitrat_nitrit + fine_silt                | -50.498 |     1.828 |   2.647 |      0.055 | 0.042 |         0.037 |    NA |       NA |         0.015 |          NA |    NA |     0.030 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + ammonium                                         | -50.488 |     1.838 |   2.437 |         NA | 0.074 |         0.047 | 0.040 |    0.024 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + ammonium + shannon_bak                                   | -50.487 |     1.840 |   8.636 |      0.069 |    NA |            NA | 0.033 |    0.026 |            NA |          NA |    NA |        NA |               NA |       0.040 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + ammonium + finesilt_and_clay + shannon_bak            | -50.481 |     1.845 |   2.818 |         NA | 0.057 |         0.034 |    NA |    0.020 |            NA |          NA |    NA |        NA |               NA |       0.051 |             0.027 |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + ammonium                                            | -50.481 |     1.846 |   4.050 |      0.047 | 0.040 |            NA | 0.028 |    0.034 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + fine_silt                                                             | -50.476 |     1.851 |   1.554 |         NA | 0.080 |            NA |    NA |       NA |            NA |          NA |    NA |     0.044 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + nitrat_nitrit + finesilt_and_clay                        | -50.468 |     1.859 |   2.556 |      0.062 | 0.037 |            NA |    NA |       NA |         0.018 |          NA |    NA |        NA |               NA |          NA |             0.034 |       NA |
+| JaccardDistance \~ water_content + fine_silt + shannon_bak                                    | -50.467 |     1.859 |   1.691 |         NA |    NA |         0.043 |    NA |       NA |            NA |          NA |    NA |     0.035 |               NA |       0.070 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + ammonium + fine_silt + shannon_bak                       | -50.465 |     1.861 |   9.065 |      0.066 |    NA |            NA | 0.032 |    0.030 |            NA |          NA |    NA |     0.038 |               NA |       0.037 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + fine_silt + dexter_n                     | -50.462 |     1.864 |   2.717 |      0.056 | 0.041 |         0.035 |    NA |       NA |            NA |          NA |    NA |     0.027 |               NA |          NA |                NA |    0.014 |
+| JaccardDistance \~ ec + water_content + oc_beregnet + clay + shannon_bak                      | -50.459 |     1.867 |   2.673 |         NA | 0.053 |         0.044 |    NA |       NA |            NA |       0.024 | 0.025 |        NA |               NA |       0.039 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + ammonium + clay + shannon_bak                         | -50.457 |     1.869 |   2.530 |         NA | 0.059 |         0.041 |    NA |    0.024 |            NA |          NA | 0.027 |        NA |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + coarse_silt_sand + shannon_bak                   | -50.451 |     1.875 |   2.985 |         NA | 0.055 |         0.042 | 0.023 |       NA |            NA |          NA |    NA |        NA |            0.028 |       0.033 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + wr + clay + shannon_bak                               | -50.451 |     1.875 |   2.942 |         NA | 0.060 |         0.052 | 0.023 |       NA |            NA |          NA | 0.028 |        NA |               NA |       0.034 |                NA |       NA |
+| JaccardDistance \~ ec + oc_beregnet + fine_silt                                               | -50.442 |     1.884 |   1.560 |         NA | 0.083 |            NA |    NA |       NA |            NA |       0.038 |    NA |     0.044 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + nitrat_nitrit + shannon_bak                         | -50.432 |     1.894 |   9.320 |      0.060 | 0.042 |            NA | 0.027 |       NA |         0.018 |          NA |    NA |        NA |               NA |       0.050 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + fine_silt + coarse_silt_sand + shannon_bak            | -50.432 |     1.894 |   9.070 |         NA | 0.054 |         0.041 |    NA |       NA |            NA |          NA |    NA |     0.023 |            0.019 |       0.043 |                NA |       NA |
+| JaccardDistance \~ ec + wr + fine_silt + shannon_bak                                          | -50.429 |     1.897 |   2.839 |         NA | 0.061 |            NA | 0.025 |       NA |            NA |          NA |    NA |     0.045 |               NA |       0.036 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + ammonium + fine_silt + shannon_bak                    | -50.426 |     1.900 |   3.077 |         NA | 0.056 |         0.030 |    NA |    0.019 |            NA |          NA |    NA |     0.026 |               NA |       0.051 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + wr + dexter_n                            | -50.424 |     1.902 |   4.166 |      0.042 | 0.043 |         0.052 | 0.026 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |    0.019 |
+| JaccardDistance \~ ec + coarse_silt_sand                                                      | -50.417 |     1.909 |   1.437 |         NA | 0.093 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.043 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + ammonium + clay                               | -50.411 |     1.915 |   2.434 |      0.103 |    NA |         0.032 |    NA |    0.024 |            NA |          NA | 0.028 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + water_content + ammonium + oc_beregnet + fine_silt            | -50.407 |     1.919 |   4.299 |      0.093 |    NA |         0.041 |    NA |    0.018 |            NA |       0.036 |    NA |     0.031 |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ ec + water_content + oc_beregnet + clay                                    | -50.403 |     1.923 |   2.166 |         NA | 0.089 |         0.050 |    NA |       NA |            NA |       0.036 | 0.025 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + ammonium + finesilt_and_clay                             | -50.398 |     1.928 |   2.546 |      0.070 |    NA |            NA | 0.024 |    0.035 |            NA |          NA |    NA |        NA |               NA |          NA |             0.039 |       NA |
+| JaccardDistance \~ p_h\_water + oc_beregnet + clay                                            | -50.396 |     1.930 |   1.353 |      0.098 |    NA |            NA |    NA |       NA |            NA |       0.023 | 0.033 |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + wr + ammonium + finesilt_and_clay                        | -50.387 |     1.939 |   4.267 |      0.043 | 0.038 |            NA | 0.025 |    0.035 |            NA |          NA |    NA |        NA |               NA |          NA |             0.037 |       NA |
+| JaccardDistance \~ p_h\_water + water_content + wr + ammonium                                 | -50.372 |     1.954 |   2.480 |      0.072 |    NA |         0.039 | 0.027 |    0.023 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + oc_beregnet + fine_silt + shannon_bak                    | -50.368 |     1.958 |   9.199 |      0.070 |    NA |            NA | 0.028 |       NA |            NA |       0.028 |    NA |     0.034 |               NA |       0.041 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + ammonium                                              | -50.358 |     1.968 |   2.417 |         NA | 0.100 |         0.046 |    NA |    0.025 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ water_content + finesilt_and_clay + shannon_bak                            | -50.357 |     1.969 |   1.550 |         NA |    NA |         0.044 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.073 |             0.034 |       NA |
+| JaccardDistance \~ water_content + coarse_silt_sand + shannon_bak                             | -50.353 |     1.974 |   1.916 |         NA |    NA |         0.046 |    NA |       NA |            NA |          NA |    NA |        NA |            0.034 |       0.080 |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + nitrat_nitrit + clay + shannon_bak                       | -50.351 |     1.975 |   6.345 |      0.053 | 0.044 |            NA |    NA |       NA |         0.019 |          NA | 0.026 |        NA |               NA |       0.041 |                NA |       NA |
+| JaccardDistance \~ ec + water_content + ammonium + coarse_silt_sand + shannon_bak             | -50.348 |     1.978 |   3.368 |         NA | 0.054 |         0.030 |    NA |    0.022 |            NA |          NA |    NA |        NA |            0.025 |       0.051 |                NA |       NA |
+| JaccardDistance \~ ec + wr + coarse_silt_sand                                                 | -50.346 |     1.981 |   1.682 |         NA | 0.066 |            NA | 0.037 |       NA |            NA |          NA |    NA |        NA |            0.042 |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + wr + ammonium                                                 | -50.344 |     1.983 |   2.477 |      0.070 |    NA |            NA | 0.026 |    0.034 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| JaccardDistance \~ p_h\_water + ec + water_content + dexter_n + shannon_bak                   | -50.342 |     1.984 |   8.263 |      0.029 | 0.049 |         0.026 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.025 |                NA |    0.019 |
+| JaccardDistance \~ p_h\_water + wr + ammonium + finesilt_and_clay + shannon_bak               | -50.328 |     1.998 |   9.005 |      0.067 |    NA |            NA | 0.033 |    0.030 |            NA |          NA |    NA |        NA |               NA |       0.037 |             0.036 |       NA |
 
 Table 2.2: Best models
 
@@ -354,6 +637,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   Response = env.data
   
@@ -384,9 +668,9 @@ for(x in 1:length(METADATAS)){
   
   Dataset <- "BrayDistance"
 }
-#> [1] "1 of 3 ready 2023-01-31 14:39:30"
-#> [1] "2 of 3 ready 2023-01-31 14:40:35"
-#> [1] "3 of 3 ready 2023-01-31 14:41:40"
+#> [1] "1 of 3 ready 2023-03-23 11:41:07"
+#> [1] "2 of 3 ready 2023-03-23 11:42:10"
+#> [1] "3 of 3 ready 2023-03-23 11:43:13"
 
 
 AllForms <- AllForms %>% 
@@ -408,7 +692,7 @@ openxlsx::write.xlsx(AllFormsVegAbund, "AllFormsVegAbund.xlsx")
 
 </details>
 
-This generate up to 2,358 models to evaluate, which can be downloaded as
+This generate up to 1,536 models to evaluate, which can be downloaded as
 an excel file
 [here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllFormsVegAbund.xlsx)
 an rds
@@ -458,6 +742,7 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
     dplyr::select(-habitat_type) 
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   
   Response = env.data
@@ -510,7 +795,7 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
     
   }
   Temp <- AllFormsVegAbund[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response,adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -531,7 +816,7 @@ Fs <- foreach(x = 1:nrow(AllFormsVegAbund), .packages = c("vegan", "dplyr", "tid
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllFormsVegAbund$Form[x], "BrayDistance", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllFormsVegAbund$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logVegAbund.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllFormsVegAbund)))
@@ -554,13 +839,25 @@ openxlsx::write.xlsx(Fs, "FSVegAbund.xlsx")
 
 </details>
 
-As seen in table <a href="#tab:SummaryVegAbund">2.3</a> there are 1
+As seen in table <a href="#tab:SummaryVegAbund">2.3</a> there are 68
 models within 2 AICc of each other, you can see there how many times a
 variable has been selected
 
-| Variable | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
-|:---------|-----------------:|-------------------------:|---------------------------:|
-| area     |                1 |                    0.681 |                      0.681 |
+| Variable          | Number_of_models | Full_Akaike_Adjusted_RSq | Subset_Akaike_Adjusted_RSq |
+|:------------------|-----------------:|-------------------------:|---------------------------:|
+| p_h\_water        |               68 |                    0.089 |                      0.089 |
+| shannon_bak       |               62 |                    0.056 |                      0.060 |
+| ec                |               36 |                    0.021 |                      0.038 |
+| water_content     |               25 |                    0.015 |                      0.039 |
+| ammonium          |               24 |                    0.013 |                      0.035 |
+| fine_silt         |               13 |                    0.005 |                      0.026 |
+| oc_beregnet       |               12 |                    0.004 |                      0.025 |
+| nitrat_nitrit     |                9 |                    0.002 |                      0.021 |
+| coarse_silt_sand  |                9 |                    0.002 |                      0.021 |
+| wr                |                8 |                    0.003 |                      0.026 |
+| finesilt_and_clay |                7 |                    0.002 |                      0.022 |
+| clay              |                5 |                    0.001 |                      0.015 |
+| dexter_n          |                3 |                    0.000 |                      0.011 |
 
 Table 2.3: Number of selected models were variables are present and
 their Akaike Weighted R squared for the Marginal effect of the terms
@@ -576,9 +873,76 @@ Show table of selected models for vegetation presence absence
 
 </summary>
 
-| Form                 |    AICc | DeltaAICc | Max_VIF |  area |
-|:---------------------|--------:|----------:|--------:|------:|
-| BrayDistance \~ area | -72.174 |         0 |       0 | 0.681 |
+| Form                                                                                |    AICc | DeltaAICc | Max_VIF | p_h\_water |    ec | water_content |    wr | ammonium | nitrat_nitrit | oc_beregnet |  clay | fine_silt | coarse_silt_sand | shannon_bak | finesilt_and_clay | dexter_n |
+|:------------------------------------------------------------------------------------|--------:|----------:|--------:|-----------:|------:|--------------:|------:|---------:|--------------:|------------:|------:|----------:|-----------------:|------------:|------------------:|---------:|
+| BrayDistance \~ p_h\_water + ec + ammonium + shannon_bak                            | -60.587 |     0.000 |   6.496 |      0.099 | 0.042 |            NA |    NA |    0.038 |            NA |          NA |    NA |        NA |               NA |       0.071 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + shannon_bak                       | -60.435 |     0.151 |   8.200 |      0.066 | 0.037 |         0.036 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.053 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + shannon_bak                                       | -60.196 |     0.391 |   5.976 |      0.115 | 0.045 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.076 |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + shannon_bak                            | -60.183 |     0.404 |   7.726 |      0.087 |    NA |         0.045 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.047 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + wr + shannon_bak                                  | -60.044 |     0.543 |   8.770 |      0.084 | 0.051 |            NA | 0.031 |       NA |            NA |          NA |    NA |        NA |               NA |       0.074 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + oc_beregnet + shannon_bak         | -60.010 |     0.577 |   9.240 |      0.055 | 0.044 |         0.035 |    NA |       NA |            NA |       0.028 |    NA |        NA |               NA |       0.052 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ammonium + shannon_bak                                 | -59.965 |     0.621 |   6.303 |      0.111 |    NA |            NA |    NA |    0.042 |            NA |          NA |    NA |        NA |               NA |       0.064 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ammonium + fine_silt + shannon_bak                     | -59.956 |     0.631 |   6.658 |      0.110 |    NA |            NA |    NA |    0.042 |            NA |          NA |    NA |     0.033 |               NA |       0.061 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + wr + ammonium + shannon_bak                       | -59.936 |     0.651 |   9.256 |      0.085 | 0.048 |            NA | 0.025 |    0.032 |            NA |          NA |    NA |        NA |               NA |       0.071 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + ammonium + shannon_bak            | -59.872 |     0.715 |   8.214 |      0.065 | 0.036 |         0.024 |    NA |    0.026 |            NA |          NA |    NA |        NA |               NA |       0.050 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + oc_beregnet + shannon_bak                         | -59.862 |     0.725 |   8.520 |      0.061 | 0.045 |            NA |    NA |       NA |            NA |       0.029 |    NA |        NA |               NA |       0.061 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + ammonium + fine_silt + shannon_bak                | -59.786 |     0.800 |   6.796 |      0.092 | 0.031 |            NA |    NA |    0.040 |            NA |          NA |    NA |     0.023 |               NA |       0.067 |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + fine_silt + shannon_bak                | -59.785 |     0.802 |   7.779 |      0.084 |    NA |         0.040 |    NA |       NA |            NA |          NA |    NA |     0.028 |               NA |       0.048 |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + ammonium + shannon_bak                 | -59.642 |     0.945 |   7.831 |      0.086 |    NA |         0.029 |    NA |    0.026 |            NA |          NA |    NA |        NA |               NA |       0.044 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ammonium + finesilt_and_clay + shannon_bak             | -59.622 |     0.964 |   6.617 |      0.110 |    NA |            NA |    NA |    0.042 |            NA |          NA |    NA |        NA |               NA |       0.060 |             0.029 |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + fine_silt + shannon_bak           | -59.615 |     0.971 |   8.209 |      0.067 | 0.031 |         0.038 |    NA |       NA |            NA |          NA |    NA |     0.023 |               NA |       0.053 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ammonium + coarse_silt_sand + shannon_bak              | -59.594 |     0.993 |   6.933 |      0.105 |    NA |            NA |    NA |    0.040 |            NA |          NA |    NA |        NA |            0.028 |       0.057 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + ammonium + oc_beregnet + shannon_bak              | -59.572 |     1.015 |   8.574 |      0.063 | 0.046 |            NA |    NA |    0.030 |            NA |       0.020 |    NA |        NA |               NA |       0.063 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + ammonium + finesilt_and_clay + shannon_bak        | -59.517 |     1.070 |   6.774 |      0.092 | 0.032 |            NA |    NA |    0.040 |            NA |          NA |    NA |        NA |               NA |       0.066 |             0.019 |       NA |
+| BrayDistance \~ p_h\_water + water_content + nitrat_nitrit + shannon_bak            | -59.453 |     1.133 |   7.760 |      0.083 |    NA |         0.043 |    NA |       NA |         0.024 |          NA |    NA |        NA |               NA |       0.048 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ammonium + nitrat_nitrit + shannon_bak                 | -59.418 |     1.169 |   6.502 |      0.112 |    NA |            NA |    NA |    0.042 |         0.026 |          NA |    NA |        NA |               NA |       0.066 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + ammonium + coarse_silt_sand + shannon_bak         | -59.416 |     1.170 |   7.332 |      0.076 | 0.031 |            NA |    NA |    0.040 |            NA |          NA |    NA |        NA |            0.018 |       0.061 |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + finesilt_and_clay + shannon_bak        | -59.401 |     1.185 |   7.817 |      0.086 |    NA |         0.039 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.048 |             0.023 |       NA |
+| BrayDistance \~ p_h\_water + shannon_bak                                            | -59.392 |     1.195 |   5.305 |      0.121 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.071 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + ammonium + nitrat_nitrit + shannon_bak            | -59.344 |     1.243 |   6.704 |      0.097 | 0.033 |            NA |    NA |    0.038 |         0.017 |          NA |    NA |        NA |               NA |       0.071 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + nitrat_nitrit + shannon_bak       | -59.339 |     1.248 |   8.227 |      0.066 | 0.032 |         0.038 |    NA |       NA |         0.019 |          NA |    NA |        NA |               NA |       0.053 |                NA |       NA |
+| BrayDistance \~ p_h\_water + fine_silt + shannon_bak                                | -59.335 |     1.251 |   6.160 |      0.119 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.033 |               NA |       0.065 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + fine_silt + shannon_bak                           | -59.311 |     1.276 |   6.375 |      0.105 | 0.033 |            NA |    NA |       NA |            NA |          NA |    NA |     0.021 |               NA |       0.071 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + finesilt_and_clay + shannon_bak   | -59.243 |     1.344 |   8.201 |      0.066 | 0.032 |         0.036 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.052 |             0.018 |       NA |
+| BrayDistance \~ p_h\_water + water_content                                          | -59.241 |     1.345 |   1.010 |      0.158 |    NA |         0.069 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + oc_beregnet + shannon_bak              | -59.197 |     1.390 |   8.086 |      0.082 |    NA |         0.037 |    NA |       NA |            NA |       0.020 |    NA |        NA |               NA |       0.047 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + wr + oc_beregnet + shannon_bak                    | -59.140 |     1.447 |   9.981 |      0.066 | 0.047 |            NA | 0.024 |       NA |            NA |       0.022 |    NA |        NA |               NA |       0.061 |                NA |       NA |
+| BrayDistance \~ p_h\_water + coarse_silt_sand + shannon_bak                         | -59.128 |     1.459 |   6.685 |      0.108 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.030 |       0.058 |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + coarse_silt_sand + shannon_bak         | -59.127 |     1.460 |   7.852 |      0.087 |    NA |         0.034 |    NA |       NA |            NA |          NA |    NA |        NA |            0.019 |       0.048 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + ammonium + clay + shannon_bak                     | -59.107 |     1.480 |   6.666 |      0.093 | 0.036 |            NA |    NA |    0.039 |            NA |          NA | 0.014 |        NA |               NA |       0.067 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + finesilt_and_clay + shannon_bak                   | -59.059 |     1.528 |   6.351 |      0.104 | 0.035 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.071 |             0.018 |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content                                     | -59.038 |     1.549 |   2.269 |      0.062 | 0.031 |         0.060 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ p_h\_water + finesilt_and_clay + shannon_bak                        | -59.019 |     1.568 |   6.108 |      0.118 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.064 |             0.029 |       NA |
+| BrayDistance \~ p_h\_water + ec + nitrat_nitrit + shannon_bak                       | -59.011 |     1.576 |   6.142 |      0.114 | 0.037 |            NA |    NA |       NA |         0.017 |          NA |    NA |        NA |               NA |       0.077 |                NA |       NA |
+| BrayDistance \~ p_h\_water + oc_beregnet + shannon_bak                              | -59.007 |     1.579 |   7.448 |      0.087 |    NA |            NA |    NA |       NA |            NA |       0.028 |    NA |        NA |               NA |       0.055 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ammonium + clay + shannon_bak                          | -58.954 |     1.633 |   6.417 |      0.109 |    NA |            NA |    NA |    0.042 |            NA |          NA | 0.020 |        NA |               NA |       0.060 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + coarse_silt_sand + shannon_bak                    | -58.948 |     1.639 |   6.737 |      0.078 | 0.032 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |            0.017 |       0.062 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + coarse_silt_sand + shannon_bak    | -58.935 |     1.651 |   8.345 |      0.063 | 0.031 |         0.034 |    NA |       NA |            NA |          NA |    NA |        NA |            0.014 |       0.052 |                NA |       NA |
+| BrayDistance \~ p_h\_water + oc_beregnet + fine_silt + shannon_bak                  | -58.905 |     1.681 |   7.510 |      0.087 |    NA |            NA |    NA |       NA |            NA |       0.028 |    NA |     0.033 |               NA |       0.054 |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + ammonium                               | -58.885 |     1.702 |   2.295 |      0.161 |    NA |         0.049 |    NA |    0.029 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + clay + shannon_bak                     | -58.872 |     1.714 |   7.850 |      0.087 |    NA |         0.041 |    NA |       NA |            NA |          NA | 0.016 |        NA |               NA |       0.047 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + oc_beregnet + fine_silt + shannon_bak             | -58.853 |     1.734 |   9.134 |      0.051 | 0.033 |            NA |    NA |       NA |            NA |       0.028 |    NA |     0.020 |               NA |       0.054 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + clay + shannon_bak                | -58.833 |     1.754 |   8.234 |      0.065 | 0.033 |         0.036 |    NA |       NA |            NA |          NA | 0.013 |        NA |               NA |       0.052 |                NA |       NA |
+| BrayDistance \~ p_h\_water + nitrat_nitrit + shannon_bak                            | -58.832 |     1.755 |   5.752 |      0.122 |    NA |            NA |    NA |       NA |         0.026 |          NA |    NA |        NA |               NA |       0.071 |                NA |       NA |
+| BrayDistance \~ p_h\_water + wr + ammonium + shannon_bak                            | -58.808 |     1.779 |   8.636 |      0.096 |    NA |            NA | 0.018 |    0.034 |            NA |          NA |    NA |        NA |               NA |       0.066 |                NA |       NA |
+| BrayDistance \~ p_h\_water + wr + shannon_bak                                       | -58.805 |     1.781 |   8.286 |      0.094 |    NA |            NA | 0.026 |       NA |            NA |          NA |    NA |        NA |               NA |       0.070 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + wr + nitrat_nitrit + shannon_bak                  | -58.766 |     1.821 |   9.320 |      0.081 | 0.042 |            NA | 0.031 |       NA |         0.017 |          NA |    NA |        NA |               NA |       0.073 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + ammonium + dexter_n + shannon_bak                 | -58.759 |     1.828 |   6.635 |      0.099 | 0.042 |            NA |    NA |    0.036 |            NA |          NA |    NA |        NA |               NA |       0.070 |                NA |    0.010 |
+| BrayDistance \~ p_h\_water + water_content + fine_silt                              | -58.739 |     1.848 |   1.706 |      0.127 |    NA |         0.057 |    NA |       NA |            NA |          NA |    NA |     0.027 |               NA |          NA |                NA |       NA |
+| BrayDistance \~ p_h\_water + water_content + ammonium + fine_silt + shannon_bak     | -58.737 |     1.850 |   7.856 |      0.081 |    NA |         0.018 |    NA |    0.020 |            NA |          NA |    NA |     0.022 |               NA |       0.046 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + wr                                | -58.731 |     1.856 |   4.161 |      0.056 | 0.040 |         0.056 | 0.030 |       NA |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + clay + shannon_bak                                | -58.703 |     1.884 |   6.217 |      0.106 | 0.039 |            NA |    NA |       NA |            NA |          NA | 0.013 |        NA |               NA |       0.071 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + water_content + dexter_n + shannon_bak            | -58.663 |     1.924 |   8.263 |      0.065 | 0.037 |         0.035 |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.051 |                NA |    0.010 |
+| BrayDistance \~ p_h\_water + ec + water_content + ammonium                          | -58.651 |     1.936 |   2.510 |      0.065 | 0.031 |         0.045 |    NA |    0.029 |            NA |          NA |    NA |        NA |               NA |          NA |                NA |       NA |
+| BrayDistance \~ p_h\_water + ammonium + oc_beregnet + shannon_bak                   | -58.637 |     1.950 |   7.531 |      0.089 |    NA |            NA |    NA |    0.029 |            NA |       0.016 |    NA |        NA |               NA |       0.057 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + dexter_n + shannon_bak                            | -58.631 |     1.956 |   6.062 |      0.115 | 0.045 |            NA |    NA |       NA |            NA |          NA |    NA |        NA |               NA |       0.077 |                NA |    0.012 |
+| BrayDistance \~ p_h\_water + water_content + ammonium + nitrat_nitrit + shannon_bak | -58.629 |     1.957 |   7.831 |      0.078 |    NA |         0.023 |    NA |    0.023 |         0.020 |          NA |    NA |        NA |               NA |       0.044 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + nitrat_nitrit + oc_beregnet + shannon_bak         | -58.608 |     1.978 |   8.620 |      0.059 | 0.037 |            NA |    NA |       NA |         0.017 |       0.029 |    NA |        NA |               NA |       0.060 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + oc_beregnet + coarse_silt_sand + shannon_bak      | -58.605 |     1.982 |   9.130 |      0.051 | 0.035 |            NA |    NA |       NA |            NA |       0.029 |    NA |        NA |            0.017 |       0.053 |                NA |       NA |
+| BrayDistance \~ p_h\_water + ec + oc_beregnet + finesilt_and_clay + shannon_bak     | -58.605 |     1.982 |   9.130 |      0.051 | 0.035 |            NA |    NA |       NA |            NA |       0.028 |    NA |        NA |               NA |       0.053 |             0.017 |       NA |
+| BrayDistance \~ p_h\_water + ammonium + fine_silt + coarse_silt_sand + shannon_bak  | -58.600 |     1.986 |   9.030 |      0.093 |    NA |            NA |    NA |    0.034 |            NA |          NA |    NA |     0.021 |            0.016 |       0.055 |                NA |       NA |
+| BrayDistance \~ p_h\_water + fine_silt + coarse_silt_sand + shannon_bak             | -58.589 |     1.998 |   7.768 |      0.090 |    NA |            NA |    NA |       NA |            NA |          NA |    NA |     0.027 |            0.024 |       0.054 |                NA |       NA |
+| BrayDistance \~ p_h\_water + wr + fine_silt + shannon_bak                           | -58.589 |     1.998 |   8.891 |      0.089 |    NA |            NA | 0.024 |       NA |            NA |          NA |    NA |     0.031 |               NA |       0.063 |                NA |       NA |
 
 Table 2.4: Best models for vegetation abundance
 
@@ -624,6 +988,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   Response = env.data
   
@@ -654,9 +1019,9 @@ for(x in 1:length(METADATAS)){
   
   Dataset <- "BrayDistance"
 }
-#> [1] "1 of 3 ready 2023-01-31 14:46:05"
-#> [1] "2 of 3 ready 2023-01-31 14:47:23"
-#> [1] "3 of 3 ready 2023-01-31 14:48:45"
+#> [1] "1 of 3 ready 2023-03-23 11:52:11"
+#> [1] "2 of 3 ready 2023-03-23 11:53:25"
+#> [1] "3 of 3 ready 2023-03-23 11:54:40"
 
 
 AllForms <- AllForms %>% 
@@ -678,7 +1043,7 @@ openxlsx::write.xlsx(AllForms, "AllFormsBacterialAbund.xlsx")
 
 </details>
 
-This generate up to 3,504 models to evaluate, which can be downloaded as
+This generate up to 2,358 models to evaluate, which can be downloaded as
 an excel file
 [here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllFormsBacterialAbund.xlsx)
 an rds
@@ -732,6 +1097,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     dplyr::select(-habitat_type)
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "BrayDistance"
   
   Response = env.data
@@ -784,7 +1150,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -805,7 +1171,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllForms$Form[x], "BrayDistance", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logBacterialAbund.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
@@ -1003,6 +1369,7 @@ for(x in 1:length(METADATAS)){
     dplyr::select(-habitat_type) 
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   Response = env.data
   
@@ -1054,7 +1421,7 @@ openxlsx::write.xlsx(AllForms, "AllFormsBacterialPA.xlsx")
 
 </details>
 
-This generate up to 3,504 models to evaluate, which can be downloaded as
+This generate up to 2,358 models to evaluate, which can be downloaded as
 an excel file
 [here](https://github.com/Sustainscapes/AICcPermanova/raw/master/AllFormsBacterialPA.xlsx)
 an rds
@@ -1108,6 +1475,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     dplyr::select(-habitat_type)  
   
   Vars <- colnames(env.data)
+  Vars <- Vars[Vars != "area"]
   Dataset <- "JaccardDistance"
   
   Response = env.data
@@ -1160,7 +1528,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
     
   }
   Temp <- AllForms[x,]
-  Temp$AICc <-  try(AICc.PERMANOVA2(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))$AICc, silent = T)
+  Temp$AICc <-  try(AICc.PERMANOVA2(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin", strata = area)))$AICc, silent = T)
   
   Response$y <- rnorm(n = nrow(Response))
   
@@ -1181,7 +1549,7 @@ Fs <- foreach(x = 1:nrow(AllForms), .packages = c("vegan", "dplyr", "tidyr", "re
   
   Temp$Max_VIF <- VIF(lm(as.formula(stringr::str_replace_all(AllForms$Form[x], "JaccardDistance", "y")), data = Response))
   
-  Rs <- broom::tidy(adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin")) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
+  Rs <- broom::tidy(with(Response,adonis2(as.formula(AllForms$Form[x]), data = Response, by = "margin"))) %>% dplyr::filter(!(term %in% c("Residual", "Total"))) %>% dplyr::select(term, R2) %>%  pivot_wider(names_from = term, values_from = R2)
   if((x %% 100) == 0){
     sink("logBacterialPA.txt", append = T)
     cat(paste("finished", x, "number of models", Sys.time(), "of",  nrow(AllForms)))
